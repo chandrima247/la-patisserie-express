@@ -2678,7 +2678,7 @@ const FavouritesStrip = ({ products, onOrder }) => {
   const FAVS = ["p-african-coffee", "p-cold-brew", "p-mocha-frappe", "p-steak-eggs", "p-bbq-wings", "p-almond-cookies"];
   const items = FAVS.map(id => products.find(p => p.id === id)).filter(Boolean);
   return (
-    <section className="section">
+    <section className="section" style={{ padding: "var(--sp-24) 0" }}>
       <div className="container">
         <div className="section-head" style={{ alignItems: "flex-start", textAlign: "left", marginBottom: 32 }}>
           <div className="row between" style={{ width: "100%", flexWrap: "wrap", gap: 16 }}>
