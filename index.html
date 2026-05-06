@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>La Patisserie Express â€” Order</title>
+  <title>La Patisserie Express - Order</title>
   <style>
 /* ============================================================
    La Patisserie â€” Colors & Type
@@ -1918,8 +1918,8 @@ a { color: inherit; text-decoration: none; }
 <body>
   <div id="root"></div>
 
-  <script>
-/* La Patisserie Express â€” catalog & domain data */
+    <script>
+/* La Patisserie Express — catalog & domain data */
 
 const ASSET = "ds/assets";
 
@@ -1936,51 +1936,51 @@ const CATEGORIES = [
 
 const PRODUCTS = [
   // Hot
-  { id: "p-african-coffee", name: "African coffee",  category: "hot", meta: "Single-origin Â· medium roast", price: 8500, img: `${ASSET}/products/african-coffee.png`, tag: "Signature", desc: "A medium-roasted single-origin from the slopes of Mt. Elgon. Notes of cocoa, brown sugar, and a long, syrupy finish.", drink: true },
-  { id: "p-americano",      name: "Americano",       category: "hot", meta: "Double shot Â· 8oz", price: 7000, img: `${ASSET}/products/americano.png`, desc: "Two shots of espresso lengthened with hot water. Clean, dark, unpretentious.", drink: true },
-  { id: "p-african-tea",    name: "African tea",     category: "hot", meta: "Loose leaf Â· spiced", price: 6000, img: `${ASSET}/products/african-tea.png`, desc: "Black tea simmered with whole spices and a touch of milk. Traditional, comforting.", drink: true },
-  { id: "p-cappuccino",     name: "Cappuccino",      category: "hot", meta: "Espresso Â· steamed milk Â· foam", price: 12000, img: `${ASSET}/products/americano.png`, desc: "A classic espresso topped with velvety steamed milk and a dome of foam.", drink: true },
-  { id: "p-latte",          name: "CafÃ© latte",      category: "hot", meta: "Espresso Â· steamed milk", price: 13000, img: `${ASSET}/products/americano.png`, desc: "Smooth, milky, comforting. Our house blend pulled long and steamed silky.", drink: true },
-  { id: "p-mocha",          name: "Mocha",           category: "hot", meta: "Espresso Â· cocoa Â· milk", price: 14000, img: `${ASSET}/products/african-coffee.png`, desc: "Espresso with house cocoa, steamed milk, and a swirl of cream.", drink: true },
+  { id: "p-african-coffee", name: "African coffee",  category: "hot", meta: "Single-origin · medium roast", price: 8500, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, tag: "Signature", desc: "A medium-roasted single-origin from the slopes of Mt. Elgon. Notes of cocoa, brown sugar, and a long, syrupy finish.", drink: true },
+  { id: "p-americano",      name: "Americano",       category: "hot", meta: "Double shot · 8oz", price: 7000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "Two shots of espresso lengthened with hot water. Clean, dark, unpretentious.", drink: true },
+  { id: "p-african-tea",    name: "African tea",     category: "hot", meta: "Loose leaf · spiced", price: 6000, img: `${ASSET}/products/african-tea.png`, desc: "Black tea simmered with whole spices and a touch of milk. Traditional, comforting.", drink: true },
+  { id: "p-cappuccino",     name: "Cappuccino",      category: "hot", meta: "Espresso · steamed milk · foam", price: 12000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "A classic espresso topped with velvety steamed milk and a dome of foam.", drink: true },
+  { id: "p-latte",          name: "Café latte",      category: "hot", meta: "Espresso · steamed milk", price: 13000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "Smooth, milky, comforting. Our house blend pulled long and steamed silky.", drink: true },
+  { id: "p-mocha",          name: "Mocha",           category: "hot", meta: "Espresso · cocoa · milk", price: 14000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "Espresso with house cocoa, steamed milk, and a swirl of cream.", drink: true },
 
   // Cold
-  { id: "p-iced-latte",     name: "Iced latte",      category: "cold", meta: "Double shot Â· cold milk Â· ice", price: 14000, img: `${ASSET}/products/americano.png`, desc: "Two shots of espresso poured over cold milk and ice.", drink: true },
-  { id: "p-iced-am",        name: "Iced americano",  category: "cold", meta: "Double shot Â· cold water Â· ice", price: 11000, img: `${ASSET}/products/americano.png`, desc: "Espresso lengthened with cold water and plenty of ice.", drink: true },
-  { id: "p-cold-brew",      name: "Cold brew",       category: "cold", meta: "Steeped 18hrs Â· low acid", price: 15000, img: `${ASSET}/products/african-coffee.png`, tag: "Signature", desc: "Coarse-ground beans steeped overnight. Smooth, low-acid, naturally sweet.", drink: true },
+  { id: "p-iced-latte",     name: "Iced latte",      category: "cold", meta: "Double shot · cold milk · ice", price: 14000, img: `${ASSET}/products/Cold brew coffee with creamy swirls.png`, desc: "Two shots of espresso poured over cold milk and ice.", drink: true },
+  { id: "p-iced-am",        name: "Iced americano",  category: "cold", meta: "Double shot · cold water · ice", price: 11000, img: `${ASSET}/products/Cold brew coffee with creamy swirls.png`, desc: "Espresso lengthened with cold water and plenty of ice.", drink: true },
+  { id: "p-cold-brew",      name: "Cold brew",       category: "cold", meta: "Steeped 18hrs · low acid", price: 15000, img: `${ASSET}/products/Cold brew coffee with creamy swirls.png`, tag: "Signature", desc: "Coarse-ground beans steeped overnight. Smooth, low-acid, naturally sweet.", drink: true },
 
   // Frappes
-  { id: "p-vanilla-frappe", name: "Vanilla frappe",  category: "frappes", meta: "Blended Â· vanilla bean", price: 17000, img: `${ASSET}/products/americano.png`, desc: "Vanilla bean blended with espresso, milk and ice. Topped with cream.", drink: true },
-  { id: "p-mocha-frappe",   name: "Mocha frappe",    category: "frappes", meta: "Blended Â· cocoa", price: 18000, img: `${ASSET}/products/african-coffee.png`, desc: "Cocoa, espresso, milk and ice â€” blended thick.", drink: true },
+  { id: "p-vanilla-frappe", name: "Vanilla frappe",  category: "frappes", meta: "Blended · vanilla bean", price: 17000, img: `${ASSET}/products/mocha frappé.png`, desc: "Vanilla bean blended with espresso, milk and ice. Topped with cream.", drink: true },
+  { id: "p-mocha-frappe",   name: "Mocha frappe",    category: "frappes", meta: "Blended · cocoa", price: 18000, img: `${ASSET}/products/mocha frappé.png`, desc: "Cocoa, espresso, milk and ice — blended thick.", drink: true },
 
   // Breakfast
-  { id: "p-steak-eggs",     name: "American steak & eggs", category: "breakfast", meta: "Sirloin Â· 2 eggs Â· toast", price: 38000, img: `${ASSET}/products/steak-eggs.png`, desc: "Pan-seared sirloin with two eggs your way and buttered sourdough toast." },
-  { id: "p-full-english",   name: "Full English breakfast", category: "breakfast", meta: "Eggs Â· sausage Â· beans Â· toast", price: 32000, img: `${ASSET}/products/steak-eggs.png`, desc: "Two eggs, beef sausage, baked beans, grilled tomato, and buttered toast." },
-  { id: "p-pancakes",       name: "Buttermilk pancakes",   category: "breakfast", meta: "Stack of 3 Â· maple syrup", price: 22000, img: `${ASSET}/products/pastries.jpg`, desc: "Three fluffy buttermilk pancakes with maple syrup and butter." },
+  { id: "p-steak-eggs",     name: "American steak & eggs", category: "breakfast", meta: "Sirloin · 2 eggs · toast", price: 38000, img: `${ASSET}/products/Steak and eggs breakfast platter.png`, desc: "Pan-seared sirloin with two eggs your way and buttered sourdough toast." },
+  { id: "p-full-english",   name: "Full English breakfast", category: "breakfast", meta: "Eggs · sausage · beans · toast", price: 32000, img: `${ASSET}/products/Steak and eggs breakfast platter.png`, desc: "Two eggs, beef sausage, baked beans, grilled tomato, and buttered toast." },
+  { id: "p-pancakes",       name: "Buttermilk pancakes",   category: "breakfast", meta: "Stack of 3 · maple syrup", price: 22000, img: `${ASSET}/products/almond-cookies.png`, desc: "Three fluffy buttermilk pancakes with maple syrup and butter." },
 
   // Sandwiches
-  { id: "p-club",           name: "Patisserie club",  category: "sandwiches", meta: "Chicken Â· bacon Â· egg Â· tomato", price: 26000, img: `${ASSET}/products/snacks.jpg`, desc: "Triple-decker with grilled chicken, smoked bacon, sliced egg, and lettuce." },
-  { id: "p-veggie-wrap",    name: "Roasted veggie wrap", category: "sandwiches", meta: "Hummus Â· roasted veg", price: 18000, img: `${ASSET}/products/snacks.jpg`, desc: "Hummus, roasted aubergine, peppers, and rocket in a warm wrap." },
+  { id: "p-club",           name: "Patisserie club",  category: "sandwiches", meta: "Chicken · bacon · egg · tomato", price: 26000, img: `${ASSET}/products/steak-eggs.png`, desc: "Triple-decker with grilled chicken, smoked bacon, sliced egg, and lettuce." },
+  { id: "p-veggie-wrap",    name: "Roasted veggie wrap", category: "sandwiches", meta: "Hummus · roasted veg", price: 18000, img: `${ASSET}/products/steak-eggs.png`, desc: "Hummus, roasted aubergine, peppers, and rocket in a warm wrap." },
 
   // Burgers
-  { id: "p-classic-burger", name: "Classic beef burger", category: "burgers", meta: "Aged beef Â· cheddar Â· brioche", price: 32000, img: `${ASSET}/products/snacks.jpg`, desc: "Aged beef patty with mature cheddar, lettuce, tomato, and house sauce on a brioche bun." },
-  { id: "p-chicken-burger", name: "Crispy chicken burger", category: "burgers", meta: "Buttermilk chicken Â· slaw", price: 28000, img: `${ASSET}/products/snacks.jpg`, desc: "Buttermilk-fried chicken with cabbage slaw and pickles on a brioche bun." },
+  { id: "p-classic-burger", name: "Classic beef burger", category: "burgers", meta: "Aged beef · cheddar · brioche", price: 32000, img: `${ASSET}/products/steak-eggs.png`, desc: "Aged beef patty with mature cheddar, lettuce, tomato, and house sauce on a brioche bun." },
+  { id: "p-chicken-burger", name: "Crispy chicken burger", category: "burgers", meta: "Buttermilk chicken · slaw", price: 28000, img: `${ASSET}/products/steak-eggs.png`, desc: "Buttermilk-fried chicken with cabbage slaw and pickles on a brioche bun." },
 
   // Meals (BBQ)
-  { id: "p-bbq-wings",      name: "BBQ chicken wings",   category: "meals", meta: "Smoky Â· serves 1â€“2", price: 24000, img: `${ASSET}/products/bbq-chicken-wings.png`, tag: "New", desc: "Slow-smoked chicken wings glazed in our house BBQ sauce. Comes with a side of slaw." },
-  { id: "p-bbq-beef",       name: "BBQ beef sausage",    category: "meals", meta: "House blend Â· 200g", price: 18000, img: `${ASSET}/products/bbq-beef-sausage.png`, desc: "Coarse-ground beef sausage, slow-grilled until the casing snaps." },
+  { id: "p-bbq-wings",      name: "BBQ chicken wings",   category: "meals", meta: "Smoky · serves 1–2", price: 24000, img: `${ASSET}/products/BBQ chicken wings.png`, tag: "New", desc: "Slow-smoked chicken wings glazed in our house BBQ sauce. Comes with a side of slaw." },
+  { id: "p-bbq-beef",       name: "BBQ beef sausage",    category: "meals", meta: "House blend · 200g", price: 18000, img: `${ASSET}/products/bbq-beef-sausage.png`, desc: "Coarse-ground beef sausage, slow-grilled until the casing snaps." },
   { id: "p-bbq-chicken-s",  name: "BBQ chicken sausages", category: "meals", meta: "Pack of 4", price: 16000, img: `${ASSET}/products/bbq-chicken-sausages.png`, desc: "Lean chicken sausages with a smoky, peppery finish." },
 
   // Signature
-  { id: "p-almond-cookies", name: "Almond cookies",       category: "signature", meta: "Pack of 6 Â· hand-shaped", price: 12000, img: `${ASSET}/products/almond-cookies.png`, tag: "Signature", desc: "Lightly toasted almond cookies, baked in small batches every morning. Crisp edges, soft centres." },
+  { id: "p-almond-cookies", name: "Almond cookies",       category: "signature", meta: "Pack of 6 · hand-shaped", price: 12000, img: `${ASSET}/products/almond cookies.png`, tag: "Signature", desc: "Lightly toasted almond cookies, baked in small batches every morning. Crisp edges, soft centres." },
 ];
 
 const OUTLETS = [
-  { id: "o-forest",   name: "Forest Mall, Lugogo",       area: "Kampala",  type: "Flagship",      hours: "7:00 â€” 22:00", distance: 1.2 },
-  { id: "o-kololo",   name: "Kololo Hill",                area: "Kampala",  type: "Standard",      hours: "7:00 â€” 21:00", distance: 2.4 },
-  { id: "o-nakasero", name: "Nakasero",                   area: "Kampala",  type: "Standard",      hours: "7:00 â€” 22:00", distance: 3.1 },
-  { id: "o-bugolobi", name: "Bugolobi",                   area: "Kampala",  type: "Standard",      hours: "7:00 â€” 22:00", distance: 3.8 },
-  { id: "o-muyenga",  name: "Muyenga",                    area: "Kampala",  type: "Standard",      hours: "7:00 â€” 21:00", distance: 4.6 },
-  { id: "o-kabalagala",name:"Kabalagala",                 area: "Kampala",  type: "Standard",      hours: "8:00 â€” 22:00", distance: 5.0 },
+  { id: "o-forest",   name: "Forest Mall, Lugogo",       area: "Kampala",  type: "Flagship",      hours: "7:00 — 22:00", distance: 1.2 },
+  { id: "o-kololo",   name: "Kololo Hill",                area: "Kampala",  type: "Standard",      hours: "7:00 — 21:00", distance: 2.4 },
+  { id: "o-nakasero", name: "Nakasero",                   area: "Kampala",  type: "Standard",      hours: "7:00 — 22:00", distance: 3.1 },
+  { id: "o-bugolobi", name: "Bugolobi",                   area: "Kampala",  type: "Standard",      hours: "7:00 — 22:00", distance: 3.8 },
+  { id: "o-muyenga",  name: "Muyenga",                    area: "Kampala",  type: "Standard",      hours: "7:00 — 21:00", distance: 4.6 },
+  { id: "o-kabalagala",name:"Kabalagala",                 area: "Kampala",  type: "Standard",      hours: "8:00 — 22:00", distance: 5.0 },
   { id: "o-bukoto",   name: "TotalEnergies Bukoto",       area: "Kampala",  type: "TotalEnergies", hours: "24 hours",     distance: 2.0 },
   { id: "o-ntinda",   name: "TotalEnergies Ntinda",       area: "Kampala",  type: "TotalEnergies", hours: "24 hours",     distance: 4.2 },
   { id: "o-wampewo",  name: "TotalEnergies Wampewo",      area: "Kampala",  type: "TotalEnergies", hours: "24 hours",     distance: 5.5 },
@@ -1989,12 +1989,12 @@ const OUTLETS = [
   { id: "o-entebbe",  name: "TotalEnergies Entebbe",      area: "Entebbe",  type: "TotalEnergies", hours: "24 hours",     distance: 28.0 },
   { id: "o-buliisa",  name: "TotalEnergies Buliisa",      area: "Buliisa",  type: "TotalEnergies", hours: "24 hours",     distance: 240.0 },
   { id: "o-kigumba",  name: "TotalEnergies Kigumba",      area: "Kiryandongo", type: "TotalEnergies", hours: "24 hours",  distance: 220.0 },
-  { id: "o-ihk",      name: "IHK Hospital",               area: "Kampala",  type: "Hospital",      hours: "8:00 â€” 18:00", distance: 6.0 },
-  { id: "o-rosewell", name: "Rosewell Hospital",          area: "Kampala",  type: "Hospital",      hours: "8:00 â€” 18:00", distance: 9.0 },
-  { id: "o-isu",      name: "International School of Uganda", area: "Kampala", type: "School",     hours: "7:30 â€” 16:00", distance: 8.0 },
-  { id: "o-galaxy",   name: "Galaxy International School", area: "Kampala", type: "School",        hours: "7:30 â€” 16:00", distance: 10.0 },
-  { id: "o-lubowa",   name: "Lubowa Karting",              area: "Wakiso",   type: "Standard",      hours: "10:00 â€” 22:00", distance: 14.0 },
-  { id: "o-mukono",   name: "Mukono",                      area: "Mukono",   type: "Standard",      hours: "8:00 â€” 21:00", distance: 18.0 },
+  { id: "o-ihk",      name: "IHK Hospital",               area: "Kampala",  type: "Hospital",      hours: "8:00 — 18:00", distance: 6.0 },
+  { id: "o-rosewell", name: "Rosewell Hospital",          area: "Kampala",  type: "Hospital",      hours: "8:00 — 18:00", distance: 9.0 },
+  { id: "o-isu",      name: "International School of Uganda", area: "Kampala", type: "School",     hours: "7:30 — 16:00", distance: 8.0 },
+  { id: "o-galaxy",   name: "Galaxy International School", area: "Kampala", type: "School",        hours: "7:30 — 16:00", distance: 10.0 },
+  { id: "o-lubowa",   name: "Lubowa Karting",              area: "Wakiso",   type: "Standard",      hours: "10:00 — 22:00", distance: 14.0 },
+  { id: "o-mukono",   name: "Mukono",                      area: "Mukono",   type: "Standard",      hours: "8:00 — 21:00", distance: 18.0 },
 ];
 
 // Address autocomplete suggestions (fake)
@@ -2013,7 +2013,7 @@ const ADDRESS_SUGGESTIONS = [
   "Kisementi, Cooper Road",
 ];
 
-// Loyalty mock account â€” used when user is logged in
+// Loyalty mock account — used when user is logged in
 const MOCK_ACCOUNT = {
   name: "Akello Nantongo",
   phone: "703 631 215",
@@ -2032,9 +2032,9 @@ const MOCK_ACCOUNT = {
 
 const LOYALTY_TIERS = [
   { id: "guest",    name: "Guest",    min: 0,     mult: 0.05, perk: "5% back on every order" },
-  { id: "regular",  name: "Regular",  min: 5000,  mult: 0.06, perk: "6% back Â· early access to specials" },
-  { id: "patron",   name: "Patron",   min: 15000, mult: 0.07, perk: "7% back Â· birthday treat Â· priority pickup" },
-  { id: "tribe",    name: "Tribe",    min: 40000, mult: 0.08, perk: "8% back Â· monthly free pastry Â· concierge" },
+  { id: "regular",  name: "Regular",  min: 5000,  mult: 0.06, perk: "6% back · early access to specials" },
+  { id: "patron",   name: "Patron",   min: 15000, mult: 0.07, perk: "7% back · birthday treat · priority pickup" },
+  { id: "tribe",    name: "Tribe",    min: 40000, mult: 0.08, perk: "8% back · monthly free pastry · concierge" },
 ];
 
 window.LP_DATA = {
@@ -2617,7 +2617,7 @@ const HeroEditorial = ({ onOrder, onLoyalty }) => (
           </div>
           <div className="ed-stack">
             <img src="ds/assets/hero.png" alt="" />
-            <img src="ds/assets/products/almond-cookies.png" alt="" style={{ background: "var(--cream-100)", padding: "18%" }} />
+            <img src="ds/assets/products/almond cookies.png" alt="" style={{ background: "var(--cream-100)", padding: "18%" }} />
             <img src="ds/assets/products/african-coffee.png" alt="" style={{ background: "var(--cream-100)", padding: "18%" }} />
           </div>
         </div>
