@@ -353,6 +353,7 @@ body {
   --gold-opacity: 1;
 
   --nav-h: 72px;
+  --trustbar-h: 52px;
   --footer-pad: 64px;
 }
 
@@ -677,7 +678,7 @@ a { color: inherit; text-decoration: none; }
 .hero {
   position: relative;
   overflow: hidden;
-  height: calc(100vh - 72px);
+  height: calc(100vh - var(--nav-h) - var(--trustbar-h));
   min-height: 560px;
 }
 .hero-photo {
