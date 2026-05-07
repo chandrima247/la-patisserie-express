@@ -511,7 +511,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ─────────── PAGE / FADE ─────────── */
 .page { animation: fade .26s var(--ease-emphasis) both; }
-@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* ─────────── BUTTONS ─────────── */
 .btn {
@@ -1473,29 +1473,31 @@ a { color: inherit; text-decoration: none; }
   max-width: 540px;
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--sp-4);
-  padding: 14px var(--sp-4) 14px var(--sp-5);
-  background: var(--ink-800);
+  padding: 14px 14px 14px 20px;
+  background: var(--brand-live);
   color: #fff;
   border-radius: var(--r-pill);
-  box-shadow: 0 16px 40px rgba(25,25,25,0.3);
+  box-shadow: 0 12px 32px rgba(158,11,15,0.35);
   text-align: left;
-  border: 1px solid var(--gold-400);
-  animation: viewCartIn .32s var(--ease-emphasis) both;
+  border: none;
+  cursor: pointer;
+  animation: viewCartIn .28s var(--ease-emphasis) both;
 }
-@keyframes viewCartIn { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+@keyframes viewCartIn { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 .view-cart .vc-meta {
-  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  display: flex; flex-direction: column; gap: 3px; min-width: 0;
 }
-.view-cart .vc-label { font-size: 11px; color: var(--gold-200); opacity: var(--gold-opacity); letter-spacing: 0.18em; text-transform: uppercase; }
-.view-cart .vc-text { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.view-cart .vc-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 0.16em; text-transform: uppercase; }
+.view-cart .vc-text { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
 .view-cart .vc-cta {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 10px 16px;
+  display: inline-flex; align-items: center;
+  padding: 11px 20px;
   border-radius: var(--r-pill);
   background: #fff;
-  color: var(--ink-800);
-  font-size: 13px; font-weight: 600;
+  color: var(--brand-live);
+  font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* ─────────── PRODUCT MODAL ─────────── */
@@ -3225,7 +3227,6 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onOpenCart })
       unitPrice: p.price + extra,
       modifiers: labels.join(" · "),
     });
-    onOpenCart();
   };
 
   // intersection observer to auto-highlight tab on scroll
@@ -3329,10 +3330,10 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onOpenCart })
       {cartCount > 0 && (
         <button className="view-cart" onClick={onOpenCart}>
           <div className="vc-meta">
-            <span className="vc-label">Your basket</span>
+            <span className="vc-label">{cartCount} item{cartCount > 1 ? "s" : ""} added</span>
             <span className="vc-text">{cartCount} item{cartCount > 1 ? "s" : ""} · {formatUGX(cartTotal)}</span>
           </div>
-          <span className="vc-cta">View cart <Icon name="arrow-right" size={14}/></span>
+          <span className="vc-cta">View cart</span>
         </button>
       )}
 
