@@ -3138,7 +3138,7 @@ const saveRecentAddr = (addr) => {
   } catch {}
 };
 
-const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
+const DeliveryAddress = ({ outlets, onBack, onConfirm, orders = [] }) => {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [predictions, setPredictions] = useState([]);
@@ -3236,8 +3236,16 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
     });
   };
 
-  const showRecent = open && !q.trim() && recent.length > 0;
-  const showDropdown = open && (showRecent || loading || predictions.length > 0);
+  // Only show dropdown when typing — idle state shows inline saved address cards instead
+  const showRecent = open && q.trim().length > 0 && !predictions.length && !loading && recent.length > 0;
+  const showDropdown = open && q.trim().length > 0 && (showRecent || loading || predictions.length > 0);
+
+  // Saved address cards shown before user types
+  const lastOrderAddr = orders.slice().reverse().find(o => o.context?.mode === "delivery" && o.context?.address)?.context?.address;
+  const savedCards = [
+    ...recent,
+    ...(lastOrderAddr && !recent.includes(lastOrderAddr) ? [lastOrderAddr] : []),
+  ].slice(0, 5);
 
   return (
     <div className="page" data-screen-label="06 Delivery Address">
@@ -3466,9 +3474,31 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
             </p>
           </div>
         ) : (
-          !showDropdown && (
+          savedCards.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 4 }}>
+                Saved addresses
+              </p>
+              {savedCards.map((addr, i) => (
+                <button key={i} type="button" onClick={() => { setQ(addr); setOpen(false); }} style={{
+                  display: "flex", alignItems: "center", gap: 14, width: "100%", textAlign: "left",
+                  padding: "14px 16px", borderRadius: "var(--r-md)",
+                  background: "#fff", border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-sm)", cursor: "pointer",
+                }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "var(--r-full)", background: "var(--cream-100)", border: "1px solid var(--border)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    <Icon name="pin" size={15} style={{ color: "var(--brand-live)" }}/>
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink-800)", lineHeight: 1.4, flex: 1, minWidth: 0 }}>
+                    {addr}
+                  </span>
+                  <Icon name="arrow-right" size={14} style={{ color: "var(--ink-300)", flexShrink: 0 }}/>
+                </button>
+              ))}
+            </div>
+          ) : (
             <p style={{ fontSize: 13, color: "var(--fg-muted)", textAlign: "center", padding: "40px 0" }}>
-              Tap the field above to search, or see your recent addresses.
+              Type your street, area, or a landmark nearby.
             </p>
           )
         )}
@@ -5213,7 +5243,7 @@ function App() {
       content = <LP_OutletPicker outlets={window.LP_DATA.OUTLETS} onBack={() => go(context.mode ? "mode" : "landing")} onPick={handlePickOutlet} />;
       break;
     case "delivery-address":
-      content = <LP_DeliveryAddress outlets={window.LP_DATA.OUTLETS} onBack={() => go("mode")} onConfirm={handleConfirmAddress} />;
+      content = <LP_DeliveryAddress outlets={window.LP_DATA.OUTLETS} onBack={() => go("mode")} onConfirm={handleConfirmAddress} orders={orders} />;
       break;
     case "menu":
       content = <LP_Menu
