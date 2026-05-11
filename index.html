@@ -2267,8 +2267,8 @@ const Nav = ({ current, cartCount, onNav, onCart, onLoyalty, account, onAccount 
         <div className="nav-links">
           <button className={current === "landing" ? "active" : ""} onClick={() => onNav("landing")}>Home</button>
           <button className={current === "loyalty-dash" ? "active" : ""} onClick={onLoyalty}>Loyalty</button>
-          <button onClick={() => onNav("outlet")}>Outlets</button>
-          <button onClick={() => onNav("mode")}>Menu</button>
+          <button className={current === "outlet" ? "active" : ""} onClick={() => onNav("outlet")}>Outlets</button>
+          <button className={["mode","delivery-address","menu","checkout","confirm","track"].includes(current) ? "active" : ""} onClick={() => onNav("mode")}>Menu</button>
         </div>
         <div className="nav-actions">
           <button className="nav-icon-btn" aria-label="Search"><Icon name="search" /></button>
