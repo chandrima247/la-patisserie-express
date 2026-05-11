@@ -3999,19 +3999,35 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                     fontSize: 13, fontWeight: 600, color: "var(--brand-live)",
                     display: "flex", alignItems: "center", gap: 5,
                   }}>
-                    <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add instructions
-                    <span style={{ fontWeight: 400, color: "var(--fg-muted)" }}>(less sugar, no ice…)</span>
+                    <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
+                    {orderNote
+                      ? <span style={{ color: "var(--ink-700)", fontWeight: 400 }}>{orderNote}</span>
+                      : <><span>Add instructions</span><span style={{ fontWeight: 400, color: "var(--fg-muted)" }}> (less sugar, no ice…)</span></>
+                    }
                   </button>
                 ) : (
-                  <textarea
-                    autoFocus
-                    className="input"
-                    rows={2}
-                    placeholder="e.g. Less sugar, no ice, extra hot…"
-                    value={orderNote}
-                    onChange={e => setOrderNote(e.target.value)}
-                    style={{ resize: "none", lineHeight: 1.5, fontSize: 13, color: "var(--ink-700)" }}
-                  />
+                  <div>
+                    <textarea
+                      autoFocus
+                      className="input"
+                      rows={2}
+                      placeholder="e.g. Less sugar, no ice, extra hot…"
+                      value={orderNote}
+                      onChange={e => setOrderNote(e.target.value)}
+                      style={{ resize: "none", lineHeight: 1.5, fontSize: 13, color: "var(--ink-700)" }}
+                    />
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <button onClick={() => setShowNote(false)} style={{
+                        padding: "7px 18px", borderRadius: "var(--r-pill)", border: "none",
+                        background: "var(--brand-live)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                      }}>Save</button>
+                      <button onClick={() => { setOrderNote(""); setShowNote(false); }} style={{
+                        padding: "7px 14px", borderRadius: "var(--r-pill)",
+                        border: "1.5px solid var(--border)", background: "#fff",
+                        color: "var(--fg-muted)", fontSize: 13, cursor: "pointer",
+                      }}>Clear</button>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -4051,35 +4067,53 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
               </div>
 
               {/* ── Loyalty points ── */}
-              {account && account.points > 0 && (
-                <button type="button" onClick={() => setRedeemPts(redeemPts > 0 ? 0 : maxRedeem)}
-                  style={{
-                    width: "100%", marginBottom: 16, padding: "12px 14px",
-                    borderRadius: "var(--r-md)", cursor: "pointer", textAlign: "left",
-                    border: redeemPts > 0 ? "2px solid var(--gold-400)" : "1.5px solid var(--border)",
-                    background: redeemPts > 0 ? "var(--cream-100)" : "#fff",
-                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                    transition: "all .18s",
-                  }}>
-                  <div>
-                    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-gold)", marginBottom: 3 }}>✦ Patisserie Tribe</p>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)" }}>
-                      {account.points.toLocaleString()} pts available
-                    </p>
-                    <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 1 }}>
-                      Save {fmt(maxRedeem)} on this order
-                    </p>
-                  </div>
+              {account && account.points > 0 && (() => {
+                const [ptInput, setPtInput] = React.useState(redeemPts > 0 ? String(redeemPts) : "");
+                const apply = () => {
+                  const v = Math.min(Math.max(0, Number(ptInput) || 0), maxRedeem);
+                  setRedeemPts(v);
+                  setPtInput(String(v));
+                };
+                return (
                   <div style={{
-                    flexShrink: 0, padding: "6px 14px", borderRadius: "var(--r-pill)",
-                    background: redeemPts > 0 ? "var(--brand-live)" : "var(--ink-100)",
-                    color: redeemPts > 0 ? "#fff" : "var(--ink-600)",
-                    fontSize: 12, fontWeight: 700, transition: "all .18s",
+                    marginBottom: 16, padding: "11px 14px", borderRadius: "var(--r-md)",
+                    border: redeemPts > 0 ? "2px solid var(--gold-400)" : "1.5px solid var(--border)",
+                    background: redeemPts > 0 ? "var(--cream-50)" : "#fff", transition: "all .18s",
                   }}>
-                    {redeemPts > 0 ? "Applied ✓" : "Apply"}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-gold)" }}>✦ Patisserie Tribe</span>
+                      <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>{account.points.toLocaleString()} pts available</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      <input
+                        type="number" min={0} max={maxRedeem}
+                        value={ptInput}
+                        onChange={e => setPtInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && apply()}
+                        placeholder="Enter pts"
+                        style={{
+                          flex: 1, height: 38, padding: "0 12px", borderRadius: "var(--r-md)",
+                          border: "1.5px solid var(--border)", fontSize: 13, fontWeight: 600,
+                          color: "var(--ink-800)", outline: "none", minWidth: 0,
+                        }}
+                      />
+                      <button onClick={apply} style={{
+                        flexShrink: 0, height: 38, padding: "0 16px", borderRadius: "var(--r-md)",
+                        border: "none", background: "var(--brand-live)", color: "#fff",
+                        fontSize: 13, fontWeight: 700, cursor: "pointer",
+                      }}>Apply</button>
+                      {redeemPts > 0 && (
+                        <button onClick={() => { setRedeemPts(0); setPtInput(""); }} style={{
+                          flexShrink: 0, height: 38, padding: "0 12px", borderRadius: "var(--r-md)",
+                          border: "1.5px solid var(--border)", background: "#fff",
+                          color: "var(--fg-muted)", fontSize: 13, cursor: "pointer",
+                        }}>✕</button>
+                      )}
+                    </div>
+                    {redeemPts > 0 && <p style={{ fontSize: 12, color: "var(--brand-live)", marginTop: 6, fontWeight: 600 }}>−{fmt(redeemPts)} applied</p>}
                   </div>
-                </button>
-              )}
+                );
+              })()}
 
               {/* ── Totals ── */}
               <div className="totals">
