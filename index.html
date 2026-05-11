@@ -1484,6 +1484,7 @@ a { color: inherit; text-decoration: none; }
   animation: viewCartIn .28s var(--ease-emphasis) both;
 }
 @keyframes viewCartIn { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
 .view-cart .vc-meta {
   display: flex; flex-direction: column; gap: 3px; min-width: 0;
 }
@@ -2023,20 +2024,60 @@ const OUTLETS = [
   { id: "o-mukono",   name: "Mukono",                      area: "Mukono",   type: "Standard",      hours: "8:00 — 21:00", distance: 18.0 },
 ];
 
-// Address autocomplete suggestions (fake)
+// Address autocomplete — mock Google Places dataset
+// Each entry: { main, secondary } mirrors Google Places result shape
 const ADDRESS_SUGGESTIONS = [
-  "Kololo, Acacia Avenue",
-  "Kololo, Prince Charles Drive",
-  "Naguru, Bukoto Street",
-  "Bugolobi, Luthuli Avenue",
-  "Muyenga, Tank Hill Road",
-  "Nakasero, Kyadondo Road",
-  "Ntinda, Stretcher Road",
-  "Bukoto, Kira Road",
-  "Kabalagala, Ggaba Road",
-  "Lugogo, Old Port Bell Road",
-  "Mbuya, Mbuya Hill",
-  "Kisementi, Cooper Road",
+  // Kololo
+  { main: "Acacia Avenue",           secondary: "Kololo, Kampala" },
+  { main: "Prince Charles Drive",    secondary: "Kololo, Kampala" },
+  { main: "Malcolm X Avenue",        secondary: "Kololo, Kampala" },
+  { main: "Windsor Crescent",        secondary: "Kololo, Kampala" },
+  { main: "Kololo Hill Drive",       secondary: "Kololo, Kampala" },
+  // Nakasero
+  { main: "Kyadondo Road",           secondary: "Nakasero, Kampala" },
+  { main: "Nakasero Road",           secondary: "Nakasero, Kampala" },
+  { main: "Parliament Avenue",       secondary: "Nakasero, Kampala" },
+  { main: "Shimoni Road",            secondary: "Nakasero, Kampala" },
+  // Ntinda
+  { main: "Stretcher Road",          secondary: "Ntinda, Kampala" },
+  { main: "Ntinda Road",             secondary: "Ntinda, Kampala" },
+  { main: "Ntinda Shopping Centre",  secondary: "Ntinda, Kampala" },
+  { main: "Ntinda Complex",          secondary: "Ntinda, Kampala" },
+  // Bukoto
+  { main: "Kira Road",               secondary: "Bukoto, Kampala" },
+  { main: "Bukoto Street",           secondary: "Bukoto, Kampala" },
+  { main: "Cooper Road",             secondary: "Kisementi, Kampala" },
+  // Bugolobi
+  { main: "Luthuli Avenue",          secondary: "Bugolobi, Kampala" },
+  { main: "Bugolobi Flats",          secondary: "Bugolobi, Kampala" },
+  { main: "Luthuli Close",           secondary: "Bugolobi, Kampala" },
+  // Muyenga
+  { main: "Tank Hill Road",          secondary: "Muyenga, Kampala" },
+  { main: "Muyenga Hill",            secondary: "Muyenga, Kampala" },
+  { main: "Kaggwa Road",             secondary: "Muyenga, Kampala" },
+  // Kabalagala
+  { main: "Ggaba Road",              secondary: "Kabalagala, Kampala" },
+  { main: "Kabalagala Market",       secondary: "Kabalagala, Kampala" },
+  { main: "Salama Road",             secondary: "Kabalagala, Kampala" },
+  // Naguru / Mbuya
+  { main: "Naguru Drive",            secondary: "Naguru, Kampala" },
+  { main: "Mbuya Hill Road",         secondary: "Mbuya, Kampala" },
+  { main: "Naguru Hospital Road",    secondary: "Naguru, Kampala" },
+  // Lugogo
+  { main: "Forest Mall",             secondary: "Lugogo, Kampala" },
+  { main: "Old Port Bell Road",      secondary: "Lugogo, Kampala" },
+  { main: "Lugogo Bypass",           secondary: "Lugogo, Kampala" },
+  // Wandegeya / Mulago
+  { main: "Mulago Hill Road",        secondary: "Wandegeya, Kampala" },
+  { main: "Makerere Hill Road",      secondary: "Wandegeya, Kampala" },
+  // Kireka / Mukono
+  { main: "Kireka Road",             secondary: "Kireka, Kampala" },
+  { main: "Jinja Road",              secondary: "Mukono, Uganda" },
+  { main: "Mukono Town",             secondary: "Mukono, Uganda" },
+  // Entebbe / Lubowa
+  { main: "Entebbe Road",            secondary: "Lubowa, Wakiso" },
+  { main: "Entebbe Town",            secondary: "Entebbe, Uganda" },
+  { main: "Kitooro",                 secondary: "Entebbe, Uganda" },
 ];
 
 // Loyalty mock account — used when user is logged in
@@ -3020,57 +3061,63 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [predictions, setPredictions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [recent, setRecent] = useState([]);
-  const [mapsReady, setMapsReady] = useState(false);
+  const [mapsReady] = useState(!!window.google?.maps?.places);
   const inputRef = useRef(null);
   const debounceRef = useRef(null);
   const { ADDRESS_SUGGESTIONS } = window.LP_DATA;
 
-  // Load recent addresses from localStorage on mount
   useEffect(() => { setRecent(getRecentAddrs()); }, []);
 
-  // Dynamically load Google Maps Places API if key is configured
+  // Load Google Places API if key is set
   useEffect(() => {
     const key = window.LP_CONFIG?.googleMapsKey;
-    if (!key) return;
-    if (window.google?.maps?.places) { setMapsReady(true); return; }
-    if (document.getElementById("lp-gm-script")) return;
+    if (!key || window.google?.maps?.places || document.getElementById("lp-gm-script")) return;
     const s = document.createElement("script");
     s.id = "lp-gm-script";
     s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
     s.async = true;
-    s.onload = () => setMapsReady(true);
     document.head.appendChild(s);
   }, []);
 
-  // Fetch predictions — Google Places when ready, else filter ADDRESS_SUGGESTIONS
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    if (!q.trim()) { setPredictions([]); return; }
+    if (!q.trim()) { setPredictions([]); setLoading(false); return; }
+
+    setLoading(true);
     debounceRef.current = setTimeout(() => {
       if (mapsReady && window.google?.maps?.places) {
+        // Real Google Places
         new window.google.maps.places.AutocompleteService().getPlacePredictions(
           { input: q, componentRestrictions: { country: "ug" }, types: ["geocode"] },
           (results, status) => {
             const ok = window.google.maps.places.PlacesServiceStatus.OK;
-            setPredictions(status === ok && results ? results.map(r => r.description) : fallback(q));
+            const mapped = (status === ok && results)
+              ? results.map(r => ({ main: r.structured_formatting.main_text, secondary: r.structured_formatting.secondary_text }))
+              : mockSearch(q);
+            setPredictions(mapped); setLoading(false);
           }
         );
       } else {
-        setPredictions(fallback(q));
+        // Mock — simulate ~400ms network latency
+        setTimeout(() => { setPredictions(mockSearch(q)); setLoading(false); }, 400);
       }
     }, 260);
     return () => clearTimeout(debounceRef.current);
-  }, [q, mapsReady]);
+  }, [q]);
 
-  const fallback = (text) => {
+  const mockSearch = (text) => {
     const lq = text.toLowerCase();
-    return ADDRESS_SUGGESTIONS.filter(s => s.toLowerCase().includes(lq));
+    return ADDRESS_SUGGESTIONS
+      .filter(s => s.main.toLowerCase().includes(lq) || s.secondary.toLowerCase().includes(lq))
+      .slice(0, 6);
   };
 
   const select = (addr) => {
-    setQ(addr); setPredictions([]); setOpen(false);
-    saveRecentAddr(addr); setRecent(getRecentAddrs());
+    const full = addr.secondary ? `${addr.main}, ${addr.secondary}` : addr;
+    setQ(full); setPredictions([]); setOpen(false);
+    saveRecentAddr(full); setRecent(getRecentAddrs());
   };
 
   const confirm = () => {
@@ -3080,7 +3127,7 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
   };
 
   const showRecent = open && !q.trim() && recent.length > 0;
-  const showPredictions = open && q.trim() && predictions.length > 0;
+  const showDropdown = open && (showRecent || loading || predictions.length > 0);
 
   return (
     <div className="page" data-screen-label="06 Delivery Address">
@@ -3104,57 +3151,78 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
               <input
                 ref={inputRef}
                 className="input"
-                placeholder="e.g. Kololo, Acacia Avenue…"
+                placeholder="e.g. Acacia Avenue, Kololo…"
                 value={q}
                 onChange={e => { setQ(e.target.value); setOpen(true); }}
                 onFocus={() => setOpen(true)}
                 onBlur={() => setTimeout(() => setOpen(false), 200)}
                 autoFocus
               />
-              {q && (
+              {/* Loading spinner */}
+              {loading && (
+                <span style={{ flexShrink: 0, width: 16, height: 16, border: "2px solid var(--ink-200)", borderTopColor: "var(--brand)", borderRadius: "50%", animation: "spin .7s linear infinite", display: "inline-block" }}/>
+              )}
+              {q && !loading && (
                 <button style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", display: "flex", padding: "0 4px" }}
-                  onClick={() => { setQ(""); setPredictions([]); inputRef.current?.focus(); }} aria-label="Clear">
+                  onClick={() => { setQ(""); setPredictions([]); setLoading(false); inputRef.current?.focus(); }} aria-label="Clear">
                   <Icon name="close" size={15}/>
                 </button>
               )}
             </div>
 
-            {(showRecent || showPredictions) && (
+            {showDropdown && (
               <div style={{
                 position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, zIndex: 50,
                 background: "#fff", borderRadius: "var(--r-md)", boxShadow: "var(--shadow-lg)",
                 border: "1px solid var(--border)", overflow: "hidden",
               }}>
-                {/* Recent addresses section */}
+                {/* Recent */}
                 {showRecent && <>
-                  <div style={{ padding: "10px 16px 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)" }}>
-                    Recent
-                  </div>
+                  <div style={{ padding: "10px 16px 6px", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)" }}>Recent</div>
                   {recent.map((s, i) => (
                     <button key={i} type="button" onMouseDown={() => select(s)} style={{
-                      display: "flex", alignItems: "center", gap: 12,
-                      width: "100%", textAlign: "left", padding: "11px 16px",
-                      background: "none", border: "none", borderTop: "1px solid var(--border)",
-                      cursor: "pointer", fontSize: 14, color: "var(--ink-700)",
+                      display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
+                      padding: "11px 16px", background: "none", border: "none", borderTop: "1px solid var(--border)",
+                      cursor: "pointer",
                     }}>
                       <Icon name="clock" size={15} style={{ color: "var(--ink-300)", flexShrink: 0 }}/>
-                      {s}
+                      <span style={{ fontSize: 14, color: "var(--ink-700)" }}>{s}</span>
                     </button>
                   ))}
                 </>}
 
-                {/* Live predictions section */}
-                {showPredictions && predictions.map((s, i) => (
+                {/* Loading skeleton rows */}
+                {loading && [1,2,3].map(i => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", borderTop: "1px solid var(--border)" }}>
+                    <div style={{ width: 15, height: 15, borderRadius: "50%", background: "var(--ink-100)", flexShrink: 0 }}/>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: 12, width: `${55 + i * 10}%`, background: "var(--ink-100)", borderRadius: 4, marginBottom: 6 }}/>
+                      <div style={{ height: 10, width: "40%", background: "var(--ink-50)", borderRadius: 4 }}/>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Predictions */}
+                {!loading && predictions.map((s, i) => (
                   <button key={i} type="button" onMouseDown={() => select(s)} style={{
-                    display: "flex", alignItems: "center", gap: 12,
-                    width: "100%", textAlign: "left", padding: "11px 16px",
-                    background: "none", border: "none", borderTop: "1px solid var(--border)",
-                    cursor: "pointer", fontSize: 14, color: "var(--ink-700)",
+                    display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left",
+                    padding: "11px 16px", background: "none", border: "none", borderTop: "1px solid var(--border)",
+                    cursor: "pointer",
                   }}>
                     <Icon name="pin" size={15} style={{ color: "var(--ink-400)", flexShrink: 0 }}/>
-                    {s}
+                    <span style={{ display: "flex", flexDirection: "column", gap: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink-800)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.main}</span>
+                      <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>{s.secondary}</span>
+                    </span>
                   </button>
                 ))}
+
+                {/* Attribution footer */}
+                <div style={{ padding: "6px 16px 8px", textAlign: "right", borderTop: "1px solid var(--border)", background: "var(--ink-50)" }}>
+                  <span style={{ fontSize: 10, color: "var(--fg-subtle)", letterSpacing: "0.02em" }}>
+                    {mapsReady ? "Powered by Google" : "Address search · Kampala area"}
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -3185,7 +3253,7 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
         ) : (
           !showRecent && (
             <p style={{ fontSize: 13, color: "var(--fg-muted)", textAlign: "center", padding: "40px 0" }}>
-              Start typing your area above — or tap the field to see recent addresses.
+              Tap the field above to search, or see your recent addresses.
             </p>
           )
         )}
