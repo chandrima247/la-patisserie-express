@@ -3502,6 +3502,13 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onOpenCart })
           <button className="context-pill changeable" onClick={onChangeContext}>
             Change
           </button>
+          {context.mode === "delivery" && context.outlet && (
+            <span className="context-pill" style={{ marginLeft: "auto" }}>
+              <Icon name="store" size={14}/>
+              {"Fulfilled by "}
+              <strong style={{ color: "var(--ink-800)", marginLeft: 4 }}>{context.outlet.name}</strong>
+            </span>
+          )}
         </div>
       </div>
 
