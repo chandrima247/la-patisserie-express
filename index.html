@@ -3101,6 +3101,7 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
   const [apt, setApt] = useState("");
   const [floor, setFloor] = useState("");
   const [landmark, setLandmark] = useState("");
+  const [instructions, setInstructions] = useState("");
   const inputRef = useRef(null);
   const debounceRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -3181,7 +3182,10 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
     if (!q.trim()) return;
     saveRecentAddr(q.trim());
     const details = [apt, floor, landmark].filter(Boolean).join(", ");
-    onConfirm({ address: details ? `${q.trim()} — ${details}` : q.trim() });
+    onConfirm({
+      address: details ? `${q.trim()} — ${details}` : q.trim(),
+      instructions,
+    });
   };
 
   const showRecent = open && !q.trim() && recent.length > 0;
@@ -3341,7 +3345,7 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
               </div>
               <button
                 type="button"
-                onClick={() => { setQ(""); setApt(""); setFloor(""); setLandmark(""); inputRef.current?.focus(); }}
+                onClick={() => { setQ(""); setApt(""); setFloor(""); setLandmark(""); setInstructions(""); inputRef.current?.focus(); }}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", padding: 4, flexShrink: 0 }}
                 aria-label="Change address"
               >
@@ -3365,10 +3369,10 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
                 { label: "Flat / Apt no.", placeholder: "e.g. 4B", value: apt, onChange: setApt },
                 { label: "Floor", placeholder: "e.g. 3rd floor", value: floor, onChange: setFloor },
                 { label: "Landmark", placeholder: "e.g. Next to Nakumatt", value: landmark, onChange: setLandmark },
-              ].map((f, i, arr) => (
+              ].map((f, i) => (
                 <div key={f.label} style={{
                   display: "flex", alignItems: "center",
-                  borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none",
+                  borderBottom: "1px solid var(--border)",
                   padding: "0 20px",
                 }}>
                   <label style={{
@@ -3386,6 +3390,23 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
                   />
                 </div>
               ))}
+              {/* Delivery instructions */}
+              <div style={{ padding: "12px 20px" }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-600)", display: "block", marginBottom: 6 }}>
+                  Delivery instructions <span style={{ fontWeight: 400, color: "var(--fg-muted)" }}>(optional)</span>
+                </label>
+                <textarea
+                  style={{
+                    width: "100%", border: "none", outline: "none", background: "transparent",
+                    fontSize: 14, color: "var(--ink-800)", lineHeight: 1.5, resize: "none",
+                    minHeight: 56, padding: 0, fontFamily: "inherit",
+                  }}
+                  placeholder="e.g. Gate code 1234. Leave with security."
+                  rows={2}
+                  value={instructions}
+                  onChange={e => setInstructions(e.target.value)}
+                />
+              </div>
             </div>
 
             <button className="btn full lg" onClick={confirm} style={{ marginTop: 4 }}>
@@ -3860,8 +3881,6 @@ const OTP_NAMES = { "0":"Alex K.","1":"Chandrima G.","2":"Brian O.","3":"Sarah M
 const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty, onRemove, onConfirm, redeemPts, setRedeemPts }) => {
   const fmt = window.LP_DATA.formatUGX;
   const [phone, setPhone] = useState(account?.phone || "");
-  const [apt, setApt] = useState(context.apt || "");
-  const [instructions, setInstructions] = useState(context.instructions || "");
   const [otpStep, setOtpStep]   = useState("phone"); // "phone" | "otp" | "verified"
   const [otp, setOtp]           = useState("");
   const [otpSending, setOtpSending] = useState(false);
@@ -3895,7 +3914,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
     if (otpStep !== "verified") return;
     onConfirm({
       ref: "LP-" + Math.random().toString(36).slice(2, 7).toUpperCase(),
-      total, subtotal, deliveryFee, discount, earn, phone, apt, instructions, name: verifiedName,
+      total, subtotal, deliveryFee, discount, earn, phone, instructions: context.instructions, name: verifiedName,
     });
   };
 
@@ -3983,28 +4002,6 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                   }}>Edit</button>
                 </div>
 
-                {/* Apt + instructions — delivery only */}
-                {context.mode === "delivery" && (
-                  <div style={{ borderTop: "1px solid var(--border)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div>
-                      <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", display: "block", marginBottom: 6 }}>
-                        Apartment / floor / unit
-                      </label>
-                      <input className="input" placeholder="e.g. Apt 4B, 3rd floor"
-                        value={apt} onChange={e => setApt(e.target.value)}
-                        style={{ background: "#fff" }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", display: "block", marginBottom: 6 }}>
-                        Delivery instructions <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>(optional)</span>
-                      </label>
-                      <textarea className="input" rows={2}
-                        style={{ minHeight: 60, padding: 12, lineHeight: 1.5, resize: "vertical", background: "#fff" }}
-                        placeholder="e.g. Gate code 1234. Leave with security."
-                        value={instructions} onChange={e => setInstructions(e.target.value)} />
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* ── Loyalty points ── */}
@@ -4930,11 +4927,11 @@ function App() {
     setContext(ctx => ({ ...ctx, outlet: o }));
     go("menu");
   };
-  const handleConfirmAddress = ({ address }) => {
+  const handleConfirmAddress = ({ address, instructions }) => {
     const zone = inferZone(address);
     const nearestId = (ZONE_OUTLETS[zone] || [])[0];
     const outlet = window.LP_DATA.OUTLETS.find(o => o.id === nearestId) || window.LP_DATA.OUTLETS[0];
-    setContext(ctx => ({ ...ctx, address, outlet, apt: "", instructions: "" }));
+    setContext(ctx => ({ ...ctx, address, outlet, instructions: instructions || "" }));
     go("menu");
   };
   const handlePlaceOrder = (orderInfo) => {
