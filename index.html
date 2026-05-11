@@ -1537,6 +1537,18 @@ a { color: inherit; text-decoration: none; }
 @media (min-width: 700px) { .product-modal { border-radius: var(--r-xl); max-height: 88vh; } }
 @keyframes slideup { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+/* Compact drink customizer — centred popup, no art, no scroll */
+.quick-customizer {
+  max-width: 400px;
+  border-radius: var(--r-xl) !important;
+  max-height: none;
+  animation: popIn .22s var(--ease-emphasis) both;
+  margin: auto;
+  align-self: center;
+}
+@keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-backdrop:has(.quick-customizer) { align-items: center; padding: var(--sp-5); }
+
 .modal-art {
   background: var(--cream-50);
   padding: var(--sp-8) var(--sp-8) var(--sp-3);
@@ -3620,78 +3632,66 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
         />
       )}
 
-      {/* ── Quick customizer bottom sheet (drinks) ── */}
-      {customizing && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,0.45)" }}
-          onClick={() => setCustomizing(null)}>
-          <div style={{
-              position: "absolute", bottom: 0, left: 0, right: 0,
-              background: "#fff", borderRadius: "var(--r-xl) var(--r-xl) 0 0",
-              padding: "0 0 calc(24px + env(safe-area-inset-bottom))",
-              boxShadow: "0 -8px 40px rgba(0,0,0,0.14)",
-            }}
-            onClick={e => e.stopPropagation()}>
+      {/* ── Quick customizer popup (drinks) ── */}
+      {customizing && (() => {
+        const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
+        const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
+        const total = (customizing.price + extraCost) * customQty;
+        return (
+          <div className="modal-backdrop" onClick={() => setCustomizing(null)}>
+            <article className="product-modal quick-customizer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
 
-            {/* Handle */}
-            <div style={{ width: 36, height: 4, background: "var(--ink-200)", borderRadius: 2, margin: "14px auto 0" }}/>
+              {/* Header */}
+              <div className="modal-body" style={{ paddingBottom: 0 }}>
+                <div className="modal-title-row" style={{ marginBottom: 0 }}>
+                  <div>
+                    <h2 className="serif" style={{ fontSize: 20 }}>{customizing.name}</h2>
+                    <p style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 3 }}>{customizing.meta}</p>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                    <button onClick={() => setCustomizing(null)} style={{
+                      background: "var(--ink-50)", border: "none", cursor: "pointer",
+                      borderRadius: "var(--r-full)", width: 30, height: 30,
+                      display: "grid", placeItems: "center", color: "var(--ink-500)",
+                    }}><Icon name="close" size={14}/></button>
+                    <span className="price" style={{ fontSize: 15 }}>{formatUGX(customizing.price)}</span>
+                  </div>
+                </div>
 
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px 0" }}>
-              <div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: "var(--ink-800)" }}>{customizing.name}</div>
-                <div style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 2 }}>{formatUGX(customizing.price)}</div>
+                {/* Extras */}
+                <div className="modal-section" style={{ marginTop: 20 }}>
+                  <h3 style={{ marginBottom: 10 }}>Add extras</h3>
+                  <div className="option-grid">
+                    {extOpts.map(o => {
+                      const on = !!selExtras[o.id];
+                      return (
+                        <button key={o.id} type="button"
+                          className={"option-card " + (on ? "selected" : "")}
+                          onClick={() => setSelExtras(s => ({ ...s, [o.id]: !s[o.id] }))}>
+                          <span>{o.label}</span>
+                          {o.extra > 0 && <span className="opt-extra">+{formatUGX(o.extra)}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <button onClick={() => setCustomizing(null)} style={{
-                background: "var(--ink-50)", border: "none", cursor: "pointer",
-                borderRadius: "var(--r-full)", width: 32, height: 32,
-                display: "grid", placeItems: "center", color: "var(--ink-500)",
-              }}><Icon name="close" size={15}/></button>
-            </div>
 
-            {/* Extras chips */}
-            <div style={{ padding: "18px 20px 0" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 10 }}>
-                Add extras
+              {/* Footer: qty + add */}
+              <div className="modal-foot">
+                <div className="qty-modal">
+                  <button onClick={() => setCustomQty(q => Math.max(1, q - 1))} aria-label="Less"><Icon name="minus" size={14}/></button>
+                  <strong>{customQty}</strong>
+                  <button onClick={() => setCustomQty(q => q + 1)} aria-label="More"><Icon name="plus" size={14}/></button>
+                </div>
+                <button className="btn full" onClick={confirmCustom}>
+                  Add{customQty > 1 ? " " + customQty : ""} · {formatUGX(total)}
+                </button>
               </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {(MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || []).map(o => {
-                  const on = !!selExtras[o.id];
-                  return (
-                    <button key={o.id} type="button"
-                      onClick={() => setSelExtras(s => ({ ...s, [o.id]: !s[o.id] }))}
-                      style={{
-                        padding: "9px 16px", borderRadius: "var(--r-pill)", cursor: "pointer",
-                        fontSize: 13, fontWeight: 500, transition: "all .15s",
-                        background: on ? "var(--brand)" : "#fff",
-                        color: on ? "#fff" : "var(--ink-700)",
-                        border: on ? "2px solid var(--brand)" : "1px solid var(--border)",
-                      }}>
-                      {o.label}
-                      <span style={{ opacity: 0.7, marginLeft: 6, fontSize: 12 }}>+{formatUGX(o.extra)}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Qty + Add button */}
-            <div style={{ display: "flex", gap: 12, padding: "20px 20px 0", alignItems: "center" }}>
-              <div className="qty-stepper" style={{ flexShrink: 0 }}>
-                <button onClick={() => setCustomQty(q => Math.max(1, q - 1))} aria-label="Less"><Icon name="minus" size={14}/></button>
-                <span className="qty-num">{customQty}</span>
-                <button onClick={() => setCustomQty(q => q + 1)} aria-label="More"><Icon name="plus" size={14}/></button>
-              </div>
-              <button className="btn full" onClick={confirmCustom}>
-                {(() => {
-                  const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
-                  const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
-                  return `Add${customQty > 1 ? " " + customQty : ""} · ${formatUGX((customizing.price + extraCost) * customQty)}`;
-                })()}
-              </button>
-            </div>
+            </article>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
