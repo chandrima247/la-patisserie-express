@@ -3450,10 +3450,9 @@ const MODIFIER_GROUPS = {
 const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, onRemove, onOpenCart }) => {
   const { CATEGORIES, PRODUCTS, formatUGX } = window.LP_DATA;
   const [activeCat, setActiveCat] = useState(CATEGORIES[0].id);
-  const [openProduct, setOpenProduct] = useState(null);
-  const [customizing, setCustomizing] = useState(null); // drink being customized
-  const [selExtras, setSelExtras] = useState({});       // toggled extras
-  const [customQty, setCustomQty] = useState(1);
+  const [customizing, setCustomizing] = useState(null);   // drink being customized
+  const [selExtras, setSelExtras] = useState({});         // toggled extras for current item
+  const [stagedItems, setStagedItems] = useState([]);     // items built up inside popup
   const sectionRefs = useRef({});
 
   // Total qty in cart for a product (all modifier variants summed)
@@ -3469,36 +3468,52 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
     else onRemove(last._idx);
   };
 
-  // Add one more of an already-carted product (reuses existing modifiers)
+  // Add one more of a non-drink product (reuses existing modifiers)
   const addOne = (p, e) => {
     e.stopPropagation();
-    const existing = cart.find(i => i.productId === p.id);
-    onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1,
-      unitPrice: existing ? existing.unitPrice : p.price, modifiers: existing ? existing.modifiers : "" });
+    if (p.drink) {
+      // For drinks, re-open customizer so user can pick extras for this extra cup
+      setCustomizing(p); setSelExtras({}); setStagedItems([]);
+    } else {
+      const existing = cart.find(i => i.productId === p.id);
+      onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1,
+        unitPrice: existing ? existing.unitPrice : p.price, modifiers: existing ? existing.modifiers : "" });
+    }
   };
 
-  // First-time add
+  // First-time add (+ button when qty === 0)
   const handlePlus = (p, e) => {
     e.stopPropagation();
     if (p.drink) {
-      // Open customizer sheet for drinks
-      setCustomizing(p); setSelExtras({}); setCustomQty(1);
+      setCustomizing(p); setSelExtras({}); setStagedItems([]);
     } else {
-      // Food: add directly with no modifiers
       onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1, unitPrice: p.price, modifiers: "" });
     }
   };
 
-  const confirmCustom = () => {
+  // Stage the current extra selection as one item in the popup list
+  const stageOne = () => {
     const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
     const chosen = extOpts.filter(o => selExtras[o.id]);
     const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
-    onAddCart({
-      productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
-      qty: 1, unitPrice: customizing.price + extraCost,
+    setStagedItems(prev => [...prev, {
       modifiers: chosen.map(o => o.label).join(", "),
+      extrasLabel: chosen.length ? chosen.map(o => o.label).join(", ") : "",
+      unitPrice: customizing.price + extraCost,
+    }]);
+    setSelExtras({});
+  };
+
+  // Commit all staged items to cart
+  const commitAll = () => {
+    stagedItems.forEach(item => {
+      onAddCart({
+        productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
+        qty: 1, unitPrice: item.unitPrice, modifiers: item.modifiers,
+      });
     });
     setCustomizing(null);
+    setStagedItems([]);
   };
 
   // intersection observer to auto-highlight tab on scroll
@@ -3578,7 +3593,7 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                 {items.map(p => {
                   const qty = productQty(p.id);
                   return (
-                    <article key={p.id} className="product-card" onClick={() => setOpenProduct(p)}>
+                    <article key={p.id} className="product-card">
                       <div className="product-art">
                         <ProductImg src={p.img} alt={p.name} name={p.name} category={p.category} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         {p.tag && (
@@ -3624,21 +3639,14 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
         </button>
       )}
 
-      {openProduct && (
-        <ProductModal
-          product={openProduct}
-          onClose={() => setOpenProduct(null)}
-          onAdd={(item, goCart) => { onAddCart(item); setOpenProduct(null); if (goCart) onOpenCart(); }}
-        />
-      )}
-
-      {/* ── Quick customizer popup (drinks) — always adds 1; tap + again for a different config ── */}
+      {/* ── Drink customizer popup — build multiple items before committing ── */}
       {customizing && (() => {
         const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
         const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
-        const unitTotal = customizing.price + extraCost;
+        const currentPrice = customizing.price + extraCost;
+        const stagedTotal = stagedItems.reduce((s, i) => s + i.unitPrice, 0);
         return (
-          <div className="modal-backdrop" onClick={() => setCustomizing(null)}>
+          <div className="modal-backdrop" onClick={() => { setCustomizing(null); setStagedItems([]); }}>
             <article className="product-modal quick-customizer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
 
               {/* Header */}
@@ -3649,7 +3657,7 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                     <p style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 3 }}>{customizing.meta}</p>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
-                    <button onClick={() => setCustomizing(null)} style={{
+                    <button onClick={() => { setCustomizing(null); setStagedItems([]); }} style={{
                       background: "var(--ink-50)", border: "none", cursor: "pointer",
                       borderRadius: "var(--r-full)", width: 30, height: 30,
                       display: "grid", placeItems: "center", color: "var(--ink-500)",
@@ -3658,9 +3666,36 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                   </div>
                 </div>
 
+                {/* Staged items list */}
+                {stagedItems.length > 0 && (
+                  <div style={{ marginTop: 16, borderRadius: "var(--r-md)", background: "var(--cream-50)", padding: "4px 12px" }}>
+                    {stagedItems.map((item, i) => (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between",
+                        padding: "9px 0",
+                        borderBottom: i < stagedItems.length - 1 ? "1px solid var(--border)" : "none",
+                        gap: 8,
+                      }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-800)" }}>
+                            {item.extrasLabel ? item.extrasLabel : "No extras"}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-700)", flexShrink: 0 }}>
+                          {formatUGX(item.unitPrice)}
+                        </span>
+                        <button onClick={() => setStagedItems(prev => prev.filter((_, j) => j !== i))} style={{
+                          background: "none", border: "none", cursor: "pointer", padding: 4,
+                          color: "var(--fg-muted)", display: "grid", placeItems: "center", flexShrink: 0,
+                        }}><Icon name="close" size={12}/></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Extras */}
-                <div className="modal-section" style={{ marginTop: 20 }}>
-                  <h3 style={{ marginBottom: 10 }}>Add extras</h3>
+                <div className="modal-section" style={{ marginTop: stagedItems.length > 0 ? 16 : 20 }}>
+                  <h3 style={{ marginBottom: 10 }}>{stagedItems.length > 0 ? "Add another" : "Add extras"}</h3>
                   <div className="option-grid">
                     {extOpts.map(o => {
                       const on = !!selExtras[o.id];
@@ -3675,18 +3710,24 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                     })}
                   </div>
                 </div>
-
-                {/* Hint */}
-                <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 14, textAlign: "center" }}>
-                  Want another with different extras? Tap + again after adding.
-                </p>
               </div>
 
-              {/* Footer: add 1 */}
-              <div className="modal-foot">
-                <button className="btn full" onClick={confirmCustom}>
-                  Add · {formatUGX(unitTotal)}
+              {/* Footer */}
+              <div className="modal-foot" style={{ flexDirection: "column", gap: 10 }}>
+                {/* "Add this one" — stages current config, resets chips */}
+                <button onClick={stageOne} style={{
+                  width: "100%", padding: "13px 20px", borderRadius: "var(--r-pill)",
+                  border: "2px solid var(--brand-live)", background: "#fff",
+                  color: "var(--brand-live)", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                }}>
+                  + Add {stagedItems.length > 0 ? "another" : "this"} · {formatUGX(currentPrice)}
                 </button>
+                {/* "Done" — commit all staged items to cart */}
+                {stagedItems.length > 0 && (
+                  <button className="btn full" onClick={commitAll}>
+                    Done · {formatUGX(stagedTotal)} ({stagedItems.length} cup{stagedItems.length > 1 ? "s" : ""})
+                  </button>
+                )}
               </div>
             </article>
           </div>
