@@ -5120,16 +5120,9 @@ function App() {
   const [toast, setToast] = useState("");
   const [loyaltyActive, setLoyaltyActive] = useState(false);
 
-  // Track loyalty section visibility for nav highlight
+  // Clear loyalty highlight whenever we navigate away from landing
   useEffect(() => {
-    const el = document.getElementById("loyalty-section");
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => setLoyaltyActive(entry.isIntersecting),
-      { threshold: 0.15 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
+    if (route.name !== "landing") setLoyaltyActive(false);
   }, [route.name]);
 
   const showToast = (msg) => {
@@ -5299,10 +5292,11 @@ function App() {
       <LP_Nav
         current={route.name}
         cartCount={cartCount}
-        onNav={(n) => go(n)}
+        onNav={(n) => { setLoyaltyActive(false); go(n); }}
         onCart={() => go("checkout")}
         loyaltyActive={loyaltyActive}
         onLoyalty={() => {
+          setLoyaltyActive(true);
           if (route.name === "landing") {
             const el = document.getElementById("loyalty-section");
             if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
