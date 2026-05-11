@@ -2124,7 +2124,7 @@ const MOCK_ACCOUNT = {
 };
 
 const LOYALTY_TIERS = [
-  { id: "guest",    name: "Guest",    min: 0,     mult: 0.05, perk: "5% back on every order" },
+  { id: "guest",    name: "Guest",    min: 0,     mult: 0.05, perk: "Points back on every order" },
   { id: "regular",  name: "Regular",  min: 5000,  mult: 0.06, perk: "6% back · early access to specials" },
   { id: "patron",   name: "Patron",   min: 15000, mult: 0.07, perk: "7% back · birthday treat · priority pickup" },
   { id: "tribe",    name: "Tribe",    min: 40000, mult: 0.08, perk: "8% back · monthly free pastry · concierge" },
@@ -2343,7 +2343,7 @@ window.Icon = Icon;
 /* Shared Nav, Footer, Toast */
 const { useState, useEffect, useRef, useMemo } = React;
 
-const Nav = ({ current, cartCount, onNav, onCart, onLoyalty, account, onAccount }) => {
+const Nav = ({ current, cartCount, onNav, onCart, onLoyalty, account, onAccount, loyaltyActive }) => {
   return (
     <nav className="nav" data-comment-anchor="nav">
       <div className="container nav-inner">
@@ -2351,8 +2351,8 @@ const Nav = ({ current, cartCount, onNav, onCart, onLoyalty, account, onAccount 
           <img src="https://patexpressug.com/cdn/shop/files/La_Patisserie_Logo_NO_BG.png?height=126&v=1764577680" alt="La Patisserie Express" />
         </button>
         <div className="nav-links">
-          <button className={current === "landing" ? "active" : ""} onClick={() => onNav("landing")}>Home</button>
-          <button className={current === "loyalty-dash" ? "active" : ""} onClick={onLoyalty}>Loyalty</button>
+          <button className={current === "landing" && !loyaltyActive ? "active" : ""} onClick={() => onNav("landing")}>Home</button>
+          <button className={current === "loyalty-dash" || loyaltyActive ? "active" : ""} onClick={onLoyalty}>Loyalty</button>
           <button className={current === "outlet" ? "active" : ""} onClick={() => onNav("outlet")}>Outlets</button>
           <button className={["mode","delivery-address","menu","checkout","confirm","track"].includes(current) ? "active" : ""} onClick={() => onNav("mode")}>Menu</button>
         </div>
@@ -2706,7 +2706,7 @@ const LoyaltyDashboard = ({ account, onBack, onOrder }) => {
           <div className="dash-grid">
             <div className="dash-card">
               <div className="badge gold" style={{ marginBottom: 12 }}>Active</div>
-              <h5 style={{ fontFamily: "var(--display-family)", fontWeight: 500, fontSize: 22, color: "var(--ink-800)" }}>5% back forever</h5>
+              <h5 style={{ fontFamily: "var(--display-family)", fontWeight: 500, fontSize: 22, color: "var(--ink-800)" }}>Points back forever</h5>
               <p className="muted" style={{ fontSize: 13, marginTop: 6 }}>Every order earns points, no expiry.</p>
             </div>
             <div className="dash-card">
@@ -2802,7 +2802,7 @@ const TrustBar = () => (
       <div className="trust-bar-inner">
         <div className="trust-item"><span className="gold-tick">·</span><strong>5–10 min</strong> pickup</div>
         <div className="trust-item"><span className="gold-tick">·</span><strong>30–45 min</strong> delivery</div>
-        <div className="trust-item"><span className="gold-tick">·</span>Earn <strong>5%</strong> back</div>
+        <div className="trust-item"><span className="gold-tick">·</span>Earn points back</div>
         <div className="trust-item"><span className="gold-tick">·</span><strong>20+</strong> outlets</div>
       </div>
     </div>
@@ -2852,13 +2852,13 @@ const LoyaltyContent = ({ onSignup, account, onDash }) => (
   <>
     <div className="loy-head">
       <div className="eyebrow">The Patisserie Tribe · Loyalty</div>
-      <h3 className="serif">Earn <em style={{ fontStyle: "italic", color: "var(--brand-live)" }}>5% back</em> on every order.</h3>
+      <h3 className="serif">Earn <em style={{ fontStyle: "italic", color: "var(--brand-live)" }}>points back</em> on every order.</h3>
       <p>Every shilling you spend earns points. Hit 5,000 points to redeem UGX 5,000 off — and unlock priority pickup and birthday treats as you climb tiers.</p>
     </div>
     <div className="loy-body">
       <ul className="loy-benefits">
         <LoyaltyBenefitRow><b>Sign up free</b> — name and phone number, that's all.</LoyaltyBenefitRow>
-        <LoyaltyBenefitRow>Every purchase earns <b>5% back</b> as points.</LoyaltyBenefitRow>
+        <LoyaltyBenefitRow>Every purchase earns <b>points back</b> on your account.</LoyaltyBenefitRow>
         <LoyaltyBenefitRow>Reach 5,000 → <b>redeem UGX 5,000</b> off any order.</LoyaltyBenefitRow>
         <LoyaltyBenefitRow><b>Climb tiers</b> for priority pickup, birthday treats and more.</LoyaltyBenefitRow>
       </ul>
@@ -3414,9 +3414,9 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
               </div>
 
               {[
-                { label: "Flat / Apt no.", placeholder: "e.g. 4B", value: apt, onChange: setApt },
-                { label: "Floor", placeholder: "e.g. 3rd floor", value: floor, onChange: setFloor },
-                { label: "Landmark", placeholder: "e.g. Next to Nakumatt", value: landmark, onChange: setLandmark },
+                { label: "Unit / Room no.", placeholder: "e.g. Apt 4B, Office 201", value: apt, onChange: setApt },
+                { label: "Building / Floor", placeholder: "e.g. 3rd floor, Block B", value: floor, onChange: setFloor },
+                { label: "Nearby landmark", placeholder: "e.g. Next to Nakumatt (optional)", value: landmark, onChange: setLandmark },
               ].map((f, i) => (
                 <div key={f.label} style={{
                   display: "flex", alignItems: "center",
@@ -3521,7 +3521,6 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
   const [activeCat, setActiveCat] = useState(CATEGORIES[0].id);
   const [customizing, setCustomizing] = useState(null);   // drink being customized
   const [selExtras, setSelExtras] = useState({});         // toggled extras for current item
-  const [stagedItems, setStagedItems] = useState([]);     // items built up inside popup
   const sectionRefs = useRef({});
 
   // Total qty in cart for a product (all modifier variants summed)
@@ -3554,35 +3553,23 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
   const handlePlus = (p, e) => {
     e.stopPropagation();
     if (p.drink) {
-      setCustomizing(p); setSelExtras({}); setStagedItems([]);
+      setCustomizing(p); setSelExtras({});
     } else {
       onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1, unitPrice: p.price, modifiers: "" });
     }
   };
 
-  // Stage the current extra selection as one item in the popup list
-  const stageOne = () => {
+  // Confirm drink with selected extras and add to cart
+  const confirmCustom = () => {
     const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
     const chosen = extOpts.filter(o => selExtras[o.id]);
     const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
-    setStagedItems(prev => [...prev, {
+    onAddCart({
+      productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
+      qty: 1, unitPrice: customizing.price + extraCost,
       modifiers: chosen.map(o => o.label).join(", "),
-      extrasLabel: chosen.length ? chosen.map(o => o.label).join(", ") : "",
-      unitPrice: customizing.price + extraCost,
-    }]);
-    setSelExtras({});
-  };
-
-  // Commit all staged items to cart
-  const commitAll = () => {
-    stagedItems.forEach(item => {
-      onAddCart({
-        productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
-        qty: 1, unitPrice: item.unitPrice, modifiers: item.modifiers,
-      });
     });
     setCustomizing(null);
-    setStagedItems([]);
   };
 
   // intersection observer to auto-highlight tab on scroll
@@ -3708,14 +3695,13 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
         </button>
       )}
 
-      {/* ── Drink customizer popup — build multiple items before committing ── */}
+      {/* ── Drink customizer popup ── */}
       {customizing && (() => {
         const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
         const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
         const currentPrice = customizing.price + extraCost;
-        const stagedTotal = stagedItems.reduce((s, i) => s + i.unitPrice, 0);
         return (
-          <div className="modal-backdrop" onClick={() => { setCustomizing(null); setStagedItems([]); }}>
+          <div className="modal-backdrop" onClick={() => setCustomizing(null)}>
             <article className="product-modal quick-customizer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
 
               <div className="modal-body" style={{ paddingBottom: 0 }}>
@@ -3726,43 +3712,17 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                     <h2 className="serif" style={{ fontSize: 20, lineHeight: 1.2 }}>{customizing.name}</h2>
                     <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-600)", marginTop: 4, display: "block" }}>{formatUGX(customizing.price)}</span>
                   </div>
-                  <button onClick={() => { setCustomizing(null); setStagedItems([]); }} style={{
+                  <button onClick={() => setCustomizing(null)} style={{
                     background: "var(--ink-100)", border: "none", cursor: "pointer", flexShrink: 0,
                     borderRadius: "var(--r-full)", width: 30, height: 30, marginTop: 2,
                     display: "grid", placeItems: "center", color: "var(--ink-500)",
                   }}><Icon name="close" size={14}/></button>
                 </div>
 
-                {/* Staged cups — compact pill tags */}
-                {stagedItems.length > 0 && (
-                  <div style={{ marginTop: 16 }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 8 }}>
-                      In your order
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {stagedItems.map((item, i) => (
-                        <span key={i} style={{
-                          display: "inline-flex", alignItems: "center", gap: 6,
-                          padding: "5px 10px 5px 12px", borderRadius: "var(--r-pill)",
-                          background: "var(--cream-100)", border: "1px solid var(--border)",
-                          fontSize: 13, color: "var(--ink-700)",
-                        }}>
-                          {item.extrasLabel || "Plain"} · {formatUGX(item.unitPrice)}
-                          <button onClick={() => setStagedItems(prev => prev.filter((_, j) => j !== i))} style={{
-                            background: "var(--ink-200)", border: "none", cursor: "pointer",
-                            borderRadius: "var(--r-full)", width: 16, height: 16,
-                            display: "grid", placeItems: "center", color: "var(--ink-600)", padding: 0,
-                          }}><Icon name="close" size={8}/></button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Extras */}
                 <div style={{ marginTop: 20 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 10 }}>
-                    {stagedItems.length > 0 ? "Next cup — any extras?" : "Any extras?"}
+                    Any extras?
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {extOpts.map(o => {
@@ -3791,27 +3751,14 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
               </div>
 
               {/* Footer */}
-              <div className="modal-foot" style={{ gap: 10 }}>
-                {stagedItems.length > 0 ? (
-                  <>
-                    <button onClick={stageOne} style={{
-                      padding: "13px 16px", borderRadius: "var(--r-pill)", flexShrink: 0,
-                      border: "2px solid var(--brand-live)", background: "#fff",
-                      color: "var(--brand-live)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
-                    }}>+ Add cup</button>
-                    <button className="btn full" onClick={commitAll}>
-                      Add to cart · {formatUGX(stagedTotal)}
-                    </button>
-                  </>
-                ) : (
-                  <button onClick={stageOne} style={{
-                    width: "100%", padding: "14px 20px", borderRadius: "var(--r-pill)",
-                    border: "none", background: "var(--brand-live)",
-                    color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                  }}>
-                    Add to order · {formatUGX(currentPrice)}
-                  </button>
-                )}
+              <div className="modal-foot">
+                <button onClick={confirmCustom} style={{
+                  width: "100%", padding: "14px 20px", borderRadius: "var(--r-pill)",
+                  border: "none", background: "var(--brand-live)",
+                  color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                }}>
+                  Add to order · {formatUGX(currentPrice)}
+                </button>
               </div>
             </article>
           </div>
@@ -4095,53 +4042,26 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
               </div>
 
               {/* ── Loyalty points ── */}
-              {account && account.points > 0 && (() => {
-                const [ptInput, setPtInput] = React.useState(redeemPts > 0 ? String(redeemPts) : "");
-                const apply = () => {
-                  const v = Math.min(Math.max(0, Number(ptInput) || 0), maxRedeem);
-                  setRedeemPts(v);
-                  setPtInput(String(v));
-                };
-                return (
-                  <div style={{
-                    marginBottom: 16, padding: "11px 14px", borderRadius: "var(--r-md)",
-                    border: redeemPts > 0 ? "2px solid var(--gold-400)" : "1.5px solid var(--border)",
-                    background: redeemPts > 0 ? "var(--cream-50)" : "#fff", transition: "all .18s",
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-gold)" }}>✦ Patisserie Tribe</span>
-                      <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>{account.points.toLocaleString()} pts available</span>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <input
-                        type="number" min={0} max={maxRedeem}
-                        value={ptInput}
-                        onChange={e => setPtInput(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && apply()}
-                        placeholder="Enter pts"
-                        style={{
-                          flex: 1, height: 38, padding: "0 12px", borderRadius: "var(--r-md)",
-                          border: "1.5px solid var(--border)", fontSize: 13, fontWeight: 600,
-                          color: "var(--ink-800)", outline: "none", minWidth: 0,
-                        }}
-                      />
-                      <button onClick={apply} style={{
-                        flexShrink: 0, height: 38, padding: "0 16px", borderRadius: "var(--r-md)",
-                        border: "none", background: "var(--brand-live)", color: "#fff",
-                        fontSize: 13, fontWeight: 700, cursor: "pointer",
-                      }}>Apply</button>
-                      {redeemPts > 0 && (
-                        <button onClick={() => { setRedeemPts(0); setPtInput(""); }} style={{
-                          flexShrink: 0, height: 38, padding: "0 12px", borderRadius: "var(--r-md)",
-                          border: "1.5px solid var(--border)", background: "#fff",
-                          color: "var(--fg-muted)", fontSize: 13, cursor: "pointer",
-                        }}>✕</button>
-                      )}
-                    </div>
-                    {redeemPts > 0 && <p style={{ fontSize: 12, color: "var(--brand-live)", marginTop: 6, fontWeight: 600 }}>−{fmt(redeemPts)} applied</p>}
+              {account && account.points > 0 && (
+                <button type="button" onClick={() => setRedeemPts(redeemPts > 0 ? 0 : maxRedeem)} style={{
+                  width: "100%", marginBottom: 16, padding: "12px 14px", borderRadius: "var(--r-md)",
+                  border: redeemPts > 0 ? "2px solid var(--gold-400)" : "1.5px solid var(--border)",
+                  background: redeemPts > 0 ? "var(--cream-50)" : "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                  cursor: "pointer", textAlign: "left", transition: "all .18s",
+                }}>
+                  <div>
+                    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-gold)", marginBottom: 3 }}>✦ Patisserie Tribe</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)" }}>{account.points.toLocaleString()} pts · save {fmt(maxRedeem)}</p>
                   </div>
-                );
-              })()}
+                  <div style={{
+                    flexShrink: 0, padding: "6px 14px", borderRadius: "var(--r-pill)",
+                    background: redeemPts > 0 ? "var(--brand-live)" : "var(--ink-100)",
+                    color: redeemPts > 0 ? "#fff" : "var(--ink-600)",
+                    fontSize: 12, fontWeight: 700, transition: "all .18s",
+                  }}>{redeemPts > 0 ? "Applied ✓" : "Apply"}</div>
+                </button>
+              )}
 
               {/* ── Totals ── */}
               <div className="totals">
@@ -4373,7 +4293,6 @@ const Tracking = ({ order, context, onHome }) => {
           </div>
         </div>
 
-        <button className="btn dark full lg" style={{ marginTop: 24 }} onClick={onHome}>Done</button>
       </div>
     </div>
   );
@@ -4507,19 +4426,23 @@ const Profile = ({ account, orders, context, onHome, onOrder, onLogout, onAddAdd
             </button>
           </div>
 
-          {context?.mode === "delivery" && context.address ? (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ width: 34, height: 34, borderRadius: "var(--r-full)", background: "var(--cream-100)", border: "1px solid var(--border)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                <Icon name="pin" size={14} style={{ color: "var(--brand-live)" }}/>
+          {(() => {
+            const deliveryOrder = orders.slice().reverse().find(o => o.context?.mode === "delivery" && o.context?.address);
+            const savedAddr = (context?.mode === "delivery" && context.address) ? context : deliveryOrder?.context;
+            return savedAddr ? (
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                <div style={{ width: 34, height: 34, borderRadius: "var(--r-full)", background: "var(--cream-100)", border: "1px solid var(--border)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                  <Icon name="pin" size={14} style={{ color: "var(--brand-live)" }}/>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-800)", lineHeight: 1.3 }}>{savedAddr.address}</p>
+                  {savedAddr.outlet && <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 3 }}>Served by {savedAddr.outlet.name}</p>}
+                </div>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-800)", lineHeight: 1.3 }}>{context.address}</p>
-                {context.outlet && <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 3 }}>Served by {context.outlet.name}</p>}
-              </div>
-            </div>
-          ) : (
-            <p style={{ fontSize: 13, color: "var(--fg-muted)" }}>No saved addresses yet.</p>
-          )}
+            ) : (
+              <p style={{ fontSize: 13, color: "var(--fg-muted)" }}>No saved addresses yet.</p>
+            );
+          })()}
         </div>
 
         {/* Past orders */}
@@ -5167,6 +5090,19 @@ function App() {
   const [order, setOrder] = useState(null);
   const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState("");
+  const [loyaltyActive, setLoyaltyActive] = useState(false);
+
+  // Track loyalty section visibility for nav highlight
+  useEffect(() => {
+    const el = document.getElementById("loyalty-section");
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setLoyaltyActive(entry.isIntersecting),
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [route.name]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -5321,7 +5257,7 @@ function App() {
         orders={orders}
         context={context}
         onHome={() => go("landing")}
-        onOrder={(o) => { setOrder(o); go("confirm"); }}
+        onOrder={(o) => { setOrder(o); go("track"); }}
         onLogout={() => { setAccount(null); go("landing"); }}
         onAddAddress={() => go("delivery-address")}
       />;
@@ -5337,6 +5273,7 @@ function App() {
         cartCount={cartCount}
         onNav={(n) => go(n)}
         onCart={() => go("checkout")}
+        loyaltyActive={loyaltyActive}
         onLoyalty={() => {
           if (route.name === "landing") {
             const el = document.getElementById("loyalty-section");
