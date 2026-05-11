@@ -3147,7 +3147,6 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm, orders = [] }) => {
   const [recent, setRecent] = useState([]);
   const [mapsReady] = useState(!!window.google?.maps?.places);
   const [apt, setApt] = useState("");
-  const [floor, setFloor] = useState("");
   const [landmark, setLandmark] = useState("");
   const [instructions, setInstructions] = useState("");
   const inputRef = useRef(null);
@@ -3229,7 +3228,7 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm, orders = [] }) => {
   const confirm = () => {
     if (!q.trim()) return;
     saveRecentAddr(q.trim());
-    const details = [apt, floor, landmark].filter(Boolean).join(", ");
+    const details = [apt, landmark].filter(Boolean).join(", ");
     onConfirm({
       address: details ? `${q.trim()} — ${details}` : q.trim(),
       instructions,
@@ -3401,7 +3400,7 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm, orders = [] }) => {
               </div>
               <button
                 type="button"
-                onClick={() => { setQ(""); setApt(""); setFloor(""); setLandmark(""); setInstructions(""); inputRef.current?.focus(); }}
+                onClick={() => { setQ(""); setApt(""); setLandmark(""); setInstructions(""); inputRef.current?.focus(); }}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", padding: 4, flexShrink: 0 }}
                 aria-label="Change address"
               >
@@ -3422,8 +3421,7 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm, orders = [] }) => {
               </div>
 
               {[
-                { label: "Unit / Room no.", placeholder: "e.g. Apt 4B, Office 201", value: apt, onChange: setApt },
-                { label: "Building / Floor", placeholder: "e.g. 3rd floor, Block B", value: floor, onChange: setFloor },
+                { label: "Address details", placeholder: "Apt, floor, building name…", value: apt, onChange: setApt },
                 { label: "Nearby landmark", placeholder: "e.g. Next to Nakumatt (optional)", value: landmark, onChange: setLandmark },
               ].map((f, i) => (
                 <div key={f.label} style={{
