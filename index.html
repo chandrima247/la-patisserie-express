@@ -3881,6 +3881,7 @@ const OTP_NAMES = { "0":"Alex K.","1":"Chandrima G.","2":"Brian O.","3":"Sarah M
 const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty, onRemove, onConfirm, redeemPts, setRedeemPts }) => {
   const fmt = window.LP_DATA.formatUGX;
   const [phone, setPhone] = useState(account?.phone || "");
+  const [orderNote, setOrderNote] = useState("");
   const [otpStep, setOtpStep]   = useState("phone"); // "phone" | "otp" | "verified"
   const [otp, setOtp]           = useState("");
   const [otpSending, setOtpSending] = useState(false);
@@ -3914,7 +3915,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
     if (otpStep !== "verified") return;
     onConfirm({
       ref: "LP-" + Math.random().toString(36).slice(2, 7).toUpperCase(),
-      total, subtotal, deliveryFee, discount, earn, phone, instructions: context.instructions, name: verifiedName,
+      total, subtotal, deliveryFee, discount, earn, phone, instructions: context.instructions, orderNote, name: verifiedName,
     });
   };
 
@@ -3967,6 +3968,18 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                     <div className="ci-price tabular">{fmt(i.unitPrice * i.qty)}</div>
                   </div>
                 ))}
+              </div>
+
+              {/* Order note */}
+              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
+                <textarea
+                  className="input"
+                  rows={2}
+                  placeholder="Add a note for the kitchen… (allergies, preferences)"
+                  value={orderNote}
+                  onChange={e => setOrderNote(e.target.value)}
+                  style={{ resize: "none", lineHeight: 1.5, fontSize: 13, color: "var(--ink-700)" }}
+                />
               </div>
             </div>
 
