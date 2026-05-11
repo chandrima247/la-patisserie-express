@@ -3435,35 +3435,58 @@ const MODIFIER_GROUPS = {
   ],
 };
 
-const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onOpenCart }) => {
+const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, onRemove, onOpenCart }) => {
   const { CATEGORIES, PRODUCTS, formatUGX } = window.LP_DATA;
   const [activeCat, setActiveCat] = useState(CATEGORIES[0].id);
   const [openProduct, setOpenProduct] = useState(null);
+  const [customizing, setCustomizing] = useState(null); // drink being customized
+  const [selExtras, setSelExtras] = useState({});       // toggled extras
+  const [customQty, setCustomQty] = useState(1);
   const sectionRefs = useRef({});
 
-  // Quick-add: builds default selections (required groups → first option),
-  // adds to cart immediately, then opens cart view.
-  const quickAdd = (p, e) => {
+  // Total qty in cart for a product (all modifier variants summed)
+  const productQty = (id) => cart.filter(i => i.productId === id).reduce((s, i) => s + i.qty, 0);
+
+  // Remove one unit of a product (last cart entry)
+  const removeOne = (id, e) => {
     e.stopPropagation();
-    const groups = p.drink ? MODIFIER_GROUPS.drink : MODIFIER_GROUPS.food;
-    let extra = 0;
-    const labels = [];
-    groups.forEach(g => {
-      if (g.required) {
-        const opt = g.options[0];
-        extra += opt.extra;
-        labels.push(opt.label);
-      }
-    });
+    const entries = cart.map((item, idx) => ({ ...item, _idx: idx })).filter(i => i.productId === id);
+    if (!entries.length) return;
+    const last = entries[entries.length - 1];
+    if (last.qty > 1) onUpdateQty(last._idx, last.qty - 1);
+    else onRemove(last._idx);
+  };
+
+  // Add one more of an already-carted product (reuses existing modifiers)
+  const addOne = (p, e) => {
+    e.stopPropagation();
+    const existing = cart.find(i => i.productId === p.id);
+    onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1,
+      unitPrice: existing ? existing.unitPrice : p.price, modifiers: existing ? existing.modifiers : "" });
+  };
+
+  // First-time add
+  const handlePlus = (p, e) => {
+    e.stopPropagation();
+    if (p.drink) {
+      // Open customizer sheet for drinks
+      setCustomizing(p); setSelExtras({}); setCustomQty(1);
+    } else {
+      // Food: add directly with no modifiers
+      onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1, unitPrice: p.price, modifiers: "" });
+    }
+  };
+
+  const confirmCustom = () => {
+    const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
+    const chosen = extOpts.filter(o => selExtras[o.id]);
+    const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
     onAddCart({
-      productId: p.id,
-      name: p.name,
-      img: p.img,
-      meta: p.meta,
-      qty: 1,
-      unitPrice: p.price + extra,
-      modifiers: labels.join(" · "),
+      productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
+      qty: customQty, unitPrice: customizing.price + extraCost,
+      modifiers: chosen.map(o => o.label).join(", "),
     });
+    setCustomizing(null);
   };
 
   // intersection observer to auto-highlight tab on scroll
@@ -3541,7 +3564,7 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onOpenCart })
               </div>
               <div className="product-grid">
                 {items.map(p => {
-                  const inCart = cart.find(i => i.productId === p.id && !i.modifiers);
+                  const qty = productQty(p.id);
                   return (
                     <article key={p.id} className="product-card" onClick={() => setOpenProduct(p)}>
                       <div className="product-art">
@@ -3557,9 +3580,17 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onOpenCart })
                         <p className="meta">{p.meta}</p>
                         <div className="price-row">
                           <span className="price">{formatUGX(p.price)}</span>
-                          <button className="add-btn" onClick={(e) => quickAdd(p, e)} aria-label={"Add " + p.name}>
-                            <Icon name="plus" size={18}/>
-                          </button>
+                          {qty > 0 ? (
+                            <div className="qty-stepper" onClick={e => e.stopPropagation()}>
+                              <button onClick={e => removeOne(p.id, e)} aria-label="Remove one"><Icon name="minus" size={12}/></button>
+                              <span className="qty-num">{qty}</span>
+                              <button onClick={e => addOne(p, e)} aria-label="Add one"><Icon name="plus" size={12}/></button>
+                            </div>
+                          ) : (
+                            <button className="add-btn" onClick={e => handlePlus(p, e)} aria-label={"Add " + p.name}>
+                              <Icon name="plus" size={18}/>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </article>
@@ -3587,6 +3618,79 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onOpenCart })
           onClose={() => setOpenProduct(null)}
           onAdd={(item, goCart) => { onAddCart(item); setOpenProduct(null); if (goCart) onOpenCart(); }}
         />
+      )}
+
+      {/* ── Quick customizer bottom sheet (drinks) ── */}
+      {customizing && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(0,0,0,0.45)" }}
+          onClick={() => setCustomizing(null)}>
+          <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0,
+              background: "#fff", borderRadius: "var(--r-xl) var(--r-xl) 0 0",
+              padding: "0 0 calc(24px + env(safe-area-inset-bottom))",
+              boxShadow: "0 -8px 40px rgba(0,0,0,0.14)",
+            }}
+            onClick={e => e.stopPropagation()}>
+
+            {/* Handle */}
+            <div style={{ width: 36, height: 4, background: "var(--ink-200)", borderRadius: 2, margin: "14px auto 0" }}/>
+
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px 0" }}>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 600, color: "var(--ink-800)" }}>{customizing.name}</div>
+                <div style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 2 }}>{formatUGX(customizing.price)}</div>
+              </div>
+              <button onClick={() => setCustomizing(null)} style={{
+                background: "var(--ink-50)", border: "none", cursor: "pointer",
+                borderRadius: "var(--r-full)", width: 32, height: 32,
+                display: "grid", placeItems: "center", color: "var(--ink-500)",
+              }}><Icon name="close" size={15}/></button>
+            </div>
+
+            {/* Extras chips */}
+            <div style={{ padding: "18px 20px 0" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 10 }}>
+                Add extras
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {(MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || []).map(o => {
+                  const on = !!selExtras[o.id];
+                  return (
+                    <button key={o.id} type="button"
+                      onClick={() => setSelExtras(s => ({ ...s, [o.id]: !s[o.id] }))}
+                      style={{
+                        padding: "9px 16px", borderRadius: "var(--r-pill)", cursor: "pointer",
+                        fontSize: 13, fontWeight: 500, transition: "all .15s",
+                        background: on ? "var(--brand)" : "#fff",
+                        color: on ? "#fff" : "var(--ink-700)",
+                        border: on ? "2px solid var(--brand)" : "1px solid var(--border)",
+                      }}>
+                      {o.label}
+                      <span style={{ opacity: 0.7, marginLeft: 6, fontSize: 12 }}>+{formatUGX(o.extra)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Qty + Add button */}
+            <div style={{ display: "flex", gap: 12, padding: "20px 20px 0", alignItems: "center" }}>
+              <div className="qty-stepper" style={{ flexShrink: 0 }}>
+                <button onClick={() => setCustomQty(q => Math.max(1, q - 1))} aria-label="Less"><Icon name="minus" size={14}/></button>
+                <span className="qty-num">{customQty}</span>
+                <button onClick={() => setCustomQty(q => q + 1)} aria-label="More"><Icon name="plus" size={14}/></button>
+              </div>
+              <button className="btn full" onClick={confirmCustom}>
+                {(() => {
+                  const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
+                  const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
+                  return `Add${customQty > 1 ? " " + customQty : ""} · ${formatUGX((customizing.price + extraCost) * customQty)}`;
+                })()}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -4746,6 +4850,8 @@ function App() {
         onBack={() => go("landing")}
         onChangeContext={() => go("mode")}
         onAddCart={addToCart}
+        onUpdateQty={updateQty}
+        onRemove={removeItem}
         onOpenCart={() => go("checkout")}
       />;
       break;
