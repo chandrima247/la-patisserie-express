@@ -2265,6 +2265,7 @@ const Nav = ({ current, cartCount, onNav, onCart, onLoyalty, account, onAccount 
           <img src="https://patexpressug.com/cdn/shop/files/La_Patisserie_Logo_NO_BG.png?height=126&v=1764577680" alt="La Patisserie Express" />
         </button>
         <div className="nav-links">
+          <button className={current === "landing" ? "active" : ""} onClick={() => onNav("landing")}>Home</button>
           <button className={current === "loyalty-dash" ? "active" : ""} onClick={onLoyalty}>Loyalty</button>
           <button onClick={() => onNav("outlet")}>Outlets</button>
           <button onClick={() => onNav("mode")}>Menu</button>
