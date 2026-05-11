@@ -3649,53 +3649,52 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
           <div className="modal-backdrop" onClick={() => { setCustomizing(null); setStagedItems([]); }}>
             <article className="product-modal quick-customizer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
 
-              {/* Header */}
               <div className="modal-body" style={{ paddingBottom: 0 }}>
-                <div className="modal-title-row" style={{ marginBottom: 0 }}>
+
+                {/* Title row */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                   <div>
-                    <h2 className="serif" style={{ fontSize: 20 }}>{customizing.name}</h2>
-                    <p style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 3 }}>{customizing.meta}</p>
+                    <h2 className="serif" style={{ fontSize: 20, lineHeight: 1.2 }}>{customizing.name}</h2>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-600)", marginTop: 4, display: "block" }}>{formatUGX(customizing.price)}</span>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
-                    <button onClick={() => { setCustomizing(null); setStagedItems([]); }} style={{
-                      background: "var(--ink-50)", border: "none", cursor: "pointer",
-                      borderRadius: "var(--r-full)", width: 30, height: 30,
-                      display: "grid", placeItems: "center", color: "var(--ink-500)",
-                    }}><Icon name="close" size={14}/></button>
-                    <span className="price" style={{ fontSize: 15 }}>{formatUGX(customizing.price)}</span>
-                  </div>
+                  <button onClick={() => { setCustomizing(null); setStagedItems([]); }} style={{
+                    background: "var(--ink-100)", border: "none", cursor: "pointer", flexShrink: 0,
+                    borderRadius: "var(--r-full)", width: 30, height: 30, marginTop: 2,
+                    display: "grid", placeItems: "center", color: "var(--ink-500)",
+                  }}><Icon name="close" size={14}/></button>
                 </div>
 
-                {/* Staged items list */}
+                {/* Staged cups — compact pill tags */}
                 {stagedItems.length > 0 && (
-                  <div style={{ marginTop: 16, borderRadius: "var(--r-md)", background: "var(--cream-50)", padding: "4px 12px" }}>
-                    {stagedItems.map((item, i) => (
-                      <div key={i} style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: "9px 0",
-                        borderBottom: i < stagedItems.length - 1 ? "1px solid var(--border)" : "none",
-                        gap: 8,
-                      }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-800)" }}>
-                            {item.extrasLabel ? item.extrasLabel : "No extras"}
-                          </span>
-                        </div>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-700)", flexShrink: 0 }}>
-                          {formatUGX(item.unitPrice)}
+                  <div style={{ marginTop: 16 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 8 }}>
+                      In your order
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {stagedItems.map((item, i) => (
+                        <span key={i} style={{
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          padding: "5px 10px 5px 12px", borderRadius: "var(--r-pill)",
+                          background: "var(--cream-100)", border: "1px solid var(--border)",
+                          fontSize: 13, color: "var(--ink-700)",
+                        }}>
+                          {item.extrasLabel || "Plain"} · {formatUGX(item.unitPrice)}
+                          <button onClick={() => setStagedItems(prev => prev.filter((_, j) => j !== i))} style={{
+                            background: "var(--ink-200)", border: "none", cursor: "pointer",
+                            borderRadius: "var(--r-full)", width: 16, height: 16,
+                            display: "grid", placeItems: "center", color: "var(--ink-600)", padding: 0,
+                          }}><Icon name="close" size={8}/></button>
                         </span>
-                        <button onClick={() => setStagedItems(prev => prev.filter((_, j) => j !== i))} style={{
-                          background: "none", border: "none", cursor: "pointer", padding: 4,
-                          color: "var(--fg-muted)", display: "grid", placeItems: "center", flexShrink: 0,
-                        }}><Icon name="close" size={12}/></button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
 
                 {/* Extras */}
-                <div className="modal-section" style={{ marginTop: stagedItems.length > 0 ? 16 : 20 }}>
-                  <h3 style={{ marginBottom: 10 }}>{stagedItems.length > 0 ? "Add another" : "Add extras"}</h3>
+                <div style={{ marginTop: 20 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 10 }}>
+                    {stagedItems.length > 0 ? "Next cup — any extras?" : "Any extras?"}
+                  </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {extOpts.map(o => {
                       const on = !!selExtras[o.id];
@@ -3712,7 +3711,7 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                           <span style={{ fontSize: 14, fontWeight: 500, color: on ? "var(--brand-live)" : "var(--ink-800)" }}>
                             {o.label}
                           </span>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: on ? "var(--brand-live)" : "var(--fg-muted)", marginLeft: 12, flexShrink: 0 }}>
+                          <span style={{ fontSize: 13, color: on ? "var(--brand-live)" : "var(--fg-muted)", marginLeft: 12, flexShrink: 0 }}>
                             +{formatUGX(o.extra)}
                           </span>
                         </button>
@@ -3723,19 +3722,25 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
               </div>
 
               {/* Footer */}
-              <div className="modal-foot" style={{ flexDirection: "column", gap: 10 }}>
-                {/* "Add this one" — stages current config, resets chips */}
-                <button onClick={stageOne} style={{
-                  width: "100%", padding: "13px 20px", borderRadius: "var(--r-pill)",
-                  border: "2px solid var(--brand-live)", background: "#fff",
-                  color: "var(--brand-live)", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                }}>
-                  + Add {stagedItems.length > 0 ? "another" : "this"} · {formatUGX(currentPrice)}
-                </button>
-                {/* "Done" — commit all staged items to cart */}
-                {stagedItems.length > 0 && (
-                  <button className="btn full" onClick={commitAll}>
-                    Done · {formatUGX(stagedTotal)} ({stagedItems.length} cup{stagedItems.length > 1 ? "s" : ""})
+              <div className="modal-foot" style={{ gap: 10 }}>
+                {stagedItems.length > 0 ? (
+                  <>
+                    <button onClick={stageOne} style={{
+                      padding: "13px 16px", borderRadius: "var(--r-pill)", flexShrink: 0,
+                      border: "2px solid var(--brand-live)", background: "#fff",
+                      color: "var(--brand-live)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+                    }}>+ Add cup</button>
+                    <button className="btn full" onClick={commitAll}>
+                      Add to cart · {formatUGX(stagedTotal)}
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={stageOne} style={{
+                    width: "100%", padding: "14px 20px", borderRadius: "var(--r-pill)",
+                    border: "none", background: "var(--brand-live)",
+                    color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                  }}>
+                    Add to order · {formatUGX(currentPrice)}
                   </button>
                 )}
               </div>
