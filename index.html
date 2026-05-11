@@ -2997,164 +2997,114 @@ const ZONE_OUTLETS = {
 
 const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
   const [q, setQ] = useState("");
-  const [selectedOutlet, setSelectedOutlet] = useState(null);
-  const [details, setDetails] = useState({ apt: "", instructions: "" });
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef(null);
+  const { ADDRESS_SUGGESTIONS } = window.LP_DATA;
 
-  const zone = inferZone(q);
-  const nearestIds = zone ? (ZONE_OUTLETS[zone] || []) : [];
-  const nearestSet = new Set(nearestIds);
+  const filtered = useMemo(() => {
+    if (!q.trim()) return ADDRESS_SUGGESTIONS;
+    const lq = q.toLowerCase();
+    return ADDRESS_SUGGESTIONS.filter(s => s.toLowerCase().includes(lq));
+  }, [q]);
 
-  const sortedOutlets = useMemo(() => {
-    return outlets
-      .map(o => ({ ...o, isNearest: nearestSet.has(o.id) }))
-      .sort((a, b) => {
-        if (a.isNearest !== b.isNearest) return Number(b.isNearest) - Number(a.isNearest);
-        if (a.isNearest && b.isNearest) return nearestIds.indexOf(a.id) - nearestIds.indexOf(b.id);
-        return a.distance - b.distance;
-      });
-  }, [outlets, zone]);
+  const select = (s) => { setQ(s); setOpen(false); };
 
-  const estMins = (km) => Math.round(10 + km * 1.8);
+  const confirm = () => {
+    if (!q.trim()) return;
+    onConfirm({ address: q });
+  };
 
   return (
-    <div className="page" data-screen-label="06 Delivery Address">
-      {/* Sticky dark search bar */}
-      <div className="delivery-search-bar">
-        <div className="container">
-          <button
-            className="back-btn"
-            onClick={selectedOutlet ? () => setSelectedOutlet(null) : onBack}
-            style={{ color: "rgba(255,255,255,0.7)", marginBottom: 12 }}
-          >
-            <Icon name="arrow-left" size={16}/> {selectedOutlet ? "Back to outlets" : "Back"}
-          </button>
-          <div className="eyebrow" style={{ color: "var(--gold-300)", marginBottom: 12 }}>
-            {selectedOutlet ? "Confirm delivery details" : "Step 2 of 3 · Delivery address"}
-          </div>
-          <div className="delivery-input-wrap">
-            <Icon name="pin" size={20}/>
+    <div className="page" data-screen-label="06 Delivery Address" style={{ minHeight: "100vh", background: "var(--bg)" }}>
+      {/* Dark header */}
+      <div style={{ background: "var(--ink-800)", padding: "24px 20px 36px" }}>
+        <button className="back-btn" onClick={onBack} style={{ color: "rgba(255,255,255,0.6)", marginBottom: 20 }}>
+          <Icon name="arrow-left" size={16}/> Back
+        </button>
+        <div className="eyebrow" style={{ color: "var(--gold-300)", marginBottom: 8 }}>Delivery</div>
+        <h2 style={{ color: "#fff", fontFamily: "var(--font-serif)", fontSize: "var(--fs-30)", fontWeight: 500, lineHeight: 1.2, margin: "0 0 24px" }}>
+          Where should we<br/>deliver?
+        </h2>
+
+        {/* Input + dropdown */}
+        <div style={{ position: "relative" }}>
+          <div className="delivery-input-wrap" style={{ background: "#fff", borderRadius: "var(--r-md)" }}>
+            <Icon name="pin" size={20} style={{ color: "var(--brand)" }}/>
             <input
+              ref={inputRef}
               type="text"
-              placeholder="Enter your neighbourhood or street…"
+              placeholder="Type your area or street…"
               value={q}
-              onChange={(e) => { setQ(e.target.value); setSelectedOutlet(null); }}
+              onChange={e => { setQ(e.target.value); setOpen(true); }}
+              onFocus={() => setOpen(true)}
               autoFocus
+              style={{ color: "var(--ink-800)", background: "transparent" }}
             />
             {q && (
-              <button className="clr" onClick={() => { setQ(""); setSelectedOutlet(null); }} aria-label="Clear">
+              <button className="clr" onClick={() => { setQ(""); setOpen(false); inputRef.current?.focus(); }} aria-label="Clear">
                 <Icon name="close" size={16}/>
               </button>
             )}
           </div>
+
+          {open && filtered.length > 0 && (
+            <div style={{
+              position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
+              background: "#fff", borderRadius: "var(--r-md)", boxShadow: "var(--shadow-lg)",
+              zIndex: 50, maxHeight: 220, overflowY: "auto",
+            }}>
+              {filtered.map((s, i) => (
+                <button key={i} type="button" onClick={() => select(s)} style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  width: "100%", textAlign: "left", padding: "12px 16px",
+                  background: "none", border: "none",
+                  borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
+                  cursor: "pointer", fontSize: 14, color: "var(--ink-700)",
+                }}>
+                  <Icon name="pin" size={15} style={{ color: "var(--ink-300)", flexShrink: 0 }}/>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Stage 1 — outlet list */}
-      {!selectedOutlet && (
-        <div>
-          {!q && (
-            <p style={{ padding: "20px 20px 8px", fontSize: 13, color: "var(--fg-muted)", textAlign: "center" }}>
-              Type your area above — nearest outlets float to the top.
-            </p>
-          )}
-          {sortedOutlets.map(o => (
-            <button
-              key={o.id}
-              className={`outlet-row${o.isNearest ? " nearest" : ""}`}
-              type="button"
-              onClick={() => setSelectedOutlet(o)}
-              style={{ width: "100%", textAlign: "left", background: "none", border: "none", borderBottom: "1px solid var(--border)" }}
-            >
-              <span className="pin">
-                <svg width="18" height="22" viewBox="0 0 24 28" fill={o.isNearest ? "var(--brand)" : "#ccc"} aria-hidden="true">
-                  <path d="M12 0C7.58 0 4 3.58 4 8c0 5.25 8 16 8 16s8-10.75 8-16c0-4.42-3.58-8-8-8zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
-                </svg>
-              </span>
-              <span className="info">
-                <span className="info" style={{ display: "block" }}>
-                  <strong style={{ fontSize: 15, fontWeight: 600, color: "var(--ink-800)" }}>{o.name}</strong>
-                </span>
-                <span className="meta">
-                  <span>~{estMins(o.distance)} min delivery</span>
-                  <span>{o.distance} km</span>
-                  <span>{o.hours}</span>
-                </span>
-                <span className="tags">
-                  {o.isNearest && (
-                    <span style={{
-                      display: "inline-block", padding: "2px 8px", borderRadius: 999,
-                      fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em",
-                      background: "#EAF7EE", color: "#356048"
-                    }}>Nearest</span>
-                  )}
-                  <span style={{
-                    display: "inline-block", padding: "2px 8px", borderRadius: 999,
-                    fontSize: 11, fontWeight: 600, border: "1px solid var(--border)", color: "var(--fg-muted)"
-                  }}>{o.type}</span>
-                </span>
-              </span>
-              <span className="arrow">
-                <Icon name="chevron-right" size={16}/>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Stage 2 — confirm details */}
-      {selectedOutlet && (
-        <div className="container" style={{ paddingTop: "var(--sp-6)", paddingBottom: "var(--sp-16)" }}>
-          <div className="delivery-confirm-panel">
-            <div className="matched-outlet">
-              <Icon name="check-circle" size={20}/>
-              <div>
-                <h5>{selectedOutlet.name}</h5>
-                <p>{selectedOutlet.distance} km · ~{estMins(selectedOutlet.distance)} min delivery · UGX 5,000 fee</p>
-              </div>
+      {/* Body */}
+      <div style={{ padding: "28px 20px" }}>
+        {q.trim() && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12,
+            padding: "14px 16px", borderRadius: "var(--r-md)",
+            background: "var(--cream-100)", border: "1px solid var(--gold-200)",
+            marginBottom: 24,
+          }}>
+            <Icon name="pin" size={18} style={{ color: "var(--brand)", flexShrink: 0 }}/>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, color: "var(--fg-muted)", marginBottom: 2 }}>Delivering to</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink-800)" }}>{q}</div>
             </div>
-
-            {q && (
-              <div style={{ marginBottom: 16 }}>
-                <div className="eyebrow" style={{ marginBottom: 4 }}>Delivering to</div>
-                <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink-800)", margin: 0 }}>{q}</p>
-              </div>
-            )}
-
-            <div className="field">
-              <label className="lbl">Apartment / unit / floor</label>
-              <input
-                className="input"
-                placeholder="e.g. Apt 4B, 3rd floor"
-                value={details.apt}
-                onChange={(e) => setDetails({ ...details, apt: e.target.value })}
-              />
-            </div>
-
-            <div className="field">
-              <label className="lbl">
-                Delivery instructions{" "}
-                <span className="muted" style={{ textTransform: "none", letterSpacing: 0, fontWeight: 500 }}>(optional)</span>
-              </label>
-              <textarea
-                className="input"
-                rows={3}
-                style={{ minHeight: 80, padding: 14, lineHeight: 1.5, resize: "vertical" }}
-                placeholder="e.g. Gate code 1234. Leave with security."
-                value={details.instructions}
-                onChange={(e) => setDetails({ ...details, instructions: e.target.value })}
-              />
-            </div>
-
-            <button
-              className="btn full lg"
-              disabled={!q.trim()}
-              onClick={() => onConfirm({ address: q, outlet: selectedOutlet, ...details })}
-            >
-              Continue to menu
+            <button type="button" onClick={() => { setQ(""); inputRef.current?.focus(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", padding: 4 }}>
+              <Icon name="close" size={14}/>
             </button>
           </div>
+        )}
+
+        <div style={{
+          display: "flex", gap: 12, padding: "14px 16px",
+          background: "var(--ink-50)", borderRadius: "var(--r-md)", marginBottom: 28,
+        }}>
+          <span style={{ fontSize: 18, flexShrink: 0 }}>🏠</span>
+          <p style={{ margin: 0, fontSize: 13, color: "var(--fg-muted)", lineHeight: 1.6 }}>
+            Add your exact apartment, floor, or gate details at checkout.
+          </p>
         </div>
-      )}
+
+        <button className="btn full lg" disabled={!q.trim()} onClick={confirm}>
+          Browse menu
+        </button>
+      </div>
     </div>
   );
 };
@@ -3455,6 +3405,8 @@ const Checkout = ({ context, cart, account, onBack, onUpdateQty, onRemove, onCon
   const fmt = window.LP_DATA.formatUGX;
   const [pay, setPay] = useState("mtn");
   const [phone, setPhone] = useState(account?.phone || "");
+  const [apt, setApt] = useState(context.apt || "");
+  const [instructions, setInstructions] = useState(context.instructions || "");
 
   const subtotal = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
   const deliveryFee = context.mode === "delivery" ? 5000 : 0;
@@ -3467,7 +3419,7 @@ const Checkout = ({ context, cart, account, onBack, onUpdateQty, onRemove, onCon
   const place = () => {
     onConfirm({
       ref: "LP-" + Math.random().toString(36).slice(2, 7).toUpperCase(),
-      total, subtotal, deliveryFee, discount, earn, pay, phone,
+      total, subtotal, deliveryFee, discount, earn, pay, phone, apt, instructions,
     });
   };
 
@@ -3533,6 +3485,25 @@ const Checkout = ({ context, cart, account, onBack, onUpdateQty, onRemove, onCon
                   ? `${context.outlet?.name} · ETA 30–45 min`
                   : `${context.outlet?.area} · ${context.outlet?.hours}`}
               </p>
+              {context.mode === "delivery" && (
+                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div className="field" style={{ margin: 0 }}>
+                    <label className="lbl">Apartment / floor / unit</label>
+                    <input className="input" placeholder="e.g. Apt 4B, 3rd floor"
+                      value={apt} onChange={e => setApt(e.target.value)} />
+                  </div>
+                  <div className="field" style={{ margin: 0 }}>
+                    <label className="lbl">
+                      Delivery instructions{" "}
+                      <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400, color: "var(--fg-muted)" }}>(optional)</span>
+                    </label>
+                    <textarea className="input" rows={2}
+                      style={{ minHeight: 64, padding: 12, lineHeight: 1.5, resize: "vertical" }}
+                      placeholder="e.g. Gate code 1234. Leave with security."
+                      value={instructions} onChange={e => setInstructions(e.target.value)} />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="checkout-section">
@@ -3557,7 +3528,7 @@ const Checkout = ({ context, cart, account, onBack, onUpdateQty, onRemove, onCon
                 <div className="field" style={{ marginTop: 16 }}>
                   <label className="lbl">Mobile money number</label>
                   <div className="phone-wrap">
-                    <span className="phone-prefix">ðŸ‡ºðŸ‡¬ +256</span>
+                    <span className="phone-prefix">🇺🇬 +256</span>
                     <input className="input" inputMode="numeric" maxLength={9} value={phone}
                       onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
                       placeholder="703 631 215"/>
@@ -4419,8 +4390,11 @@ function App() {
     setContext(ctx => ({ ...ctx, outlet: o }));
     go("menu");
   };
-  const handleConfirmAddress = ({ address, outlet, apt, instructions }) => {
-    setContext(ctx => ({ ...ctx, address, outlet, apt, instructions }));
+  const handleConfirmAddress = ({ address }) => {
+    const zone = inferZone(address);
+    const nearestId = (ZONE_OUTLETS[zone] || [])[0];
+    const outlet = window.LP_DATA.OUTLETS.find(o => o.id === nearestId) || window.LP_DATA.OUTLETS[0];
+    setContext(ctx => ({ ...ctx, address, outlet, apt: "", instructions: "" }));
     go("menu");
   };
   const handlePlaceOrder = (orderInfo) => {
