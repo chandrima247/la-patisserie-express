@@ -2233,6 +2233,15 @@ const Icon = ({ name, size = 20, ...rest }) => {
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
         </svg>
       );
+    case "mic":
+      return (
+        <svg {...props}>
+          <rect x="9" y="2" width="6" height="11" rx="3"/>
+          <path d="M19 10a7 7 0 0 1-14 0"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      );
     case "card":
       return (
         <svg {...props}>
@@ -3062,10 +3071,12 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
   const [open, setOpen] = useState(false);
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
   const [recent, setRecent] = useState([]);
   const [mapsReady] = useState(!!window.google?.maps?.places);
   const inputRef = useRef(null);
   const debounceRef = useRef(null);
+  const recognitionRef = useRef(null);
   const { ADDRESS_SUGGESTIONS } = window.LP_DATA;
 
   useEffect(() => { setRecent(getRecentAddrs()); }, []);
@@ -3120,6 +3131,25 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
     saveRecentAddr(full); setRecent(getRecentAddrs());
   };
 
+  const startVoice = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert("Voice search isn't supported in this browser. Try Chrome."); return; }
+    if (recognitionRef.current) { recognitionRef.current.abort(); }
+    const r = new SR();
+    recognitionRef.current = r;
+    r.lang = "en-UG";
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    r.onstart  = () => setListening(true);
+    r.onend    = () => setListening(false);
+    r.onerror  = () => setListening(false);
+    r.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      setQ(text); setOpen(true); setListening(false);
+    };
+    r.start();
+  };
+
   const confirm = () => {
     if (!q.trim()) return;
     saveRecentAddr(q.trim());
@@ -3158,16 +3188,40 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
                 onBlur={() => setTimeout(() => setOpen(false), 200)}
                 autoFocus
               />
-              {/* Loading spinner */}
-              {loading && (
-                <span style={{ flexShrink: 0, width: 16, height: 16, border: "2px solid var(--ink-200)", borderTopColor: "var(--brand)", borderRadius: "50%", animation: "spin .7s linear infinite", display: "inline-block" }}/>
-              )}
-              {q && !loading && (
-                <button style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", display: "flex", padding: "0 4px" }}
-                  onClick={() => { setQ(""); setPredictions([]); setLoading(false); inputRef.current?.focus(); }} aria-label="Clear">
-                  <Icon name="close" size={15}/>
+              {/* Right-side controls */}
+              <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                {/* Spinner while fetching */}
+                {loading && (
+                  <span style={{ width: 16, height: 16, border: "2px solid var(--ink-200)", borderTopColor: "var(--brand)", borderRadius: "50%", animation: "spin .7s linear infinite", display: "inline-block" }}/>
+                )}
+                {/* Clear button — always visible when there's text */}
+                {q && !loading && (
+                  <button
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", display: "flex", alignItems: "center", padding: "4px 6px", borderRadius: "var(--r-sm)" }}
+                    onClick={() => { setQ(""); setPredictions([]); setLoading(false); inputRef.current?.focus(); }}
+                    aria-label="Clear"
+                  >
+                    <Icon name="close" size={15}/>
+                  </button>
+                )}
+                {/* Separator */}
+                {!loading && <span style={{ width: 1, height: 16, background: "var(--border)", margin: "0 2px" }}/>}
+                {/* Voice button */}
+                <button
+                  style={{
+                    background: listening ? "var(--brand)" : "none",
+                    border: "none", cursor: "pointer", display: "flex", alignItems: "center",
+                    padding: "4px 6px", borderRadius: "var(--r-sm)",
+                    color: listening ? "#fff" : "var(--ink-400)",
+                    transition: "background .15s, color .15s",
+                  }}
+                  onClick={startVoice}
+                  aria-label={listening ? "Listening…" : "Search by voice"}
+                  title={listening ? "Listening…" : "Search by voice"}
+                >
+                  <Icon name="mic" size={16}/>
                 </button>
-              )}
+              </div>
             </div>
 
             {showDropdown && (
