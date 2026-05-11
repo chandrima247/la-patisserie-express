@@ -1497,6 +1497,8 @@ a { color: inherit; text-decoration: none; }
 }
 @keyframes viewCartIn { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
 .view-cart .vc-meta {
   display: flex; flex-direction: column; gap: 3px; min-width: 0;
 }
@@ -2356,7 +2358,25 @@ const Nav = ({ current, cartCount, onNav, onCart, onLoyalty, account, onAccount 
         </div>
         <div className="nav-actions">
           <button className="nav-icon-btn" aria-label="Search"><Icon name="search" /></button>
-          <button className="nav-icon-btn" aria-label="Account" onClick={onAccount}><Icon name="user" /></button>
+          {account ? (
+            <button onClick={onAccount} style={{
+              display: "flex", alignItems: "center", gap: 7, background: "none", border: "none",
+              cursor: "pointer", padding: "4px 8px 4px 4px", borderRadius: "var(--r-pill)",
+            }}>
+              <span style={{
+                width: 28, height: 28, borderRadius: "var(--r-full)", background: "var(--brand-live)",
+                color: "#fff", fontSize: 11, fontWeight: 700, display: "grid", placeItems: "center",
+                flexShrink: 0, letterSpacing: "0.02em",
+              }}>
+                {account.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)" }}>
+                {account.name.split(" ")[0]}
+              </span>
+            </button>
+          ) : (
+            <button className="nav-icon-btn" aria-label="Account" onClick={onAccount}><Icon name="user" /></button>
+          )}
           <button className="nav-icon-btn" aria-label="Cart" onClick={onCart} data-active={cartCount > 0}>
             <Icon name="bag" />
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
@@ -4287,6 +4307,157 @@ window.LP_Checkout = Checkout;
 window.LP_Confirmation = Confirmation;
 window.LP_Tracking = Tracking;
 
+/* ── Order processing screen ── */
+const Processing = ({ order, onDone }) => {
+  const fmt = window.LP_DATA.formatUGX;
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const t1 = setTimeout(() => setStep(1), 900);
+    const t2 = setTimeout(() => setStep(2), 1900);
+    const t3 = setTimeout(onDone, 2900);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
+  const steps = [
+    { label: "Confirming your order",  icon: "bag" },
+    { label: "Processing payment",     icon: "card" },
+    { label: "Order confirmed!",       icon: "check" },
+  ];
+  return (
+    <div className="page" data-screen-label="Processing" style={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ textAlign: "center", padding: "0 24px", maxWidth: 360, width: "100%" }}>
+        {/* Pulsing ring */}
+        <div style={{ position: "relative", width: 80, height: 80, margin: "0 auto 32px" }}>
+          <div style={{
+            position: "absolute", inset: 0, borderRadius: "50%",
+            background: "rgba(158,11,15,0.08)",
+            animation: "pulse-ring 1.4s ease-out infinite",
+          }}/>
+          <div style={{
+            position: "absolute", inset: 8, borderRadius: "50%",
+            background: "var(--brand-live)", display: "grid", placeItems: "center",
+          }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {step < 2
+                ? <><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></>
+                : <><polyline points="20 6 9 17 4 12"/></>
+              }
+            </svg>
+          </div>
+        </div>
+
+        <h2 className="serif" style={{ fontSize: 26, marginBottom: 8 }}>
+          {step < 2 ? "One moment…" : "You're all set!"}
+        </h2>
+        {order && <p style={{ fontSize: 13, color: "var(--fg-muted)", marginBottom: 32 }}>
+          Order {order.ref} · {fmt(order.total)}
+        </p>}
+
+        {/* Step list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
+          {steps.map((s, i) => (
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: 12,
+              opacity: step >= i ? 1 : 0.28, transition: "opacity .4s",
+            }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                background: step > i ? "var(--brand-live)" : step === i ? "var(--cream-100)" : "var(--ink-100)",
+                border: step === i ? "2px solid var(--brand-live)" : "none",
+                display: "grid", placeItems: "center", transition: "background .3s",
+              }}>
+                {step > i
+                  ? <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polyline points="2 6 5 9 10 3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  : step === i
+                    ? <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--brand-live)", animation: "blink 1s ease-in-out infinite" }}/>
+                    : null
+                }
+              </div>
+              <span style={{ fontSize: 14, fontWeight: step === i ? 600 : 400, color: step === i ? "var(--ink-800)" : "var(--ink-500)" }}>
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+window.LP_Processing = Processing;
+
+/* ── Profile screen ── */
+const Profile = ({ account, orders, context, onHome, onOrder }) => {
+  const fmt = window.LP_DATA.formatUGX;
+  const initials = account.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <div className="page" data-screen-label="Profile">
+      <section className="banner" style={{ paddingBottom: "var(--sp-6)" }}>
+        <div className="container">
+          <div style={{ display: "flex", alignItems: "center", gap: 18, paddingTop: 8 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: "var(--r-full)",
+              background: "var(--brand-live)", color: "#fff",
+              display: "grid", placeItems: "center", fontSize: 20, fontWeight: 700, flexShrink: 0,
+            }}>{initials}</div>
+            <div>
+              <h1 style={{ fontSize: 28 }}>{account.name}</h1>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>
+                {account.phone ? `+256 ${account.phone}` : "Patisserie member"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="container" style={{ paddingBottom: 80 }}>
+        {/* Saved address */}
+        {context?.mode === "delivery" && context.address && (
+          <div className="checkout-section" style={{ marginTop: 24 }}>
+            <h3>Saved address</h3>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 8 }}>
+              <div style={{ width: 32, height: 32, borderRadius: "var(--r-full)", background: "var(--cream-100)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <Icon name="pin" size={14} style={{ color: "var(--brand-live)" }}/>
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-800)" }}>{context.address}</p>
+                {context.outlet && <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 3 }}>Served by {context.outlet.name}</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Past orders */}
+        <div className="checkout-section" style={{ marginTop: 24 }}>
+          <h3>Past orders</h3>
+          {orders.length === 0 ? (
+            <p style={{ fontSize: 14, color: "var(--fg-muted)", marginTop: 8 }}>No orders yet — go treat yourself.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+              {orders.map((o, i) => (
+                <div key={i} style={{
+                  padding: "14px 16px", borderRadius: "var(--r-md)",
+                  border: "1px solid var(--border)", background: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-800)" }}>{o.ref}</p>
+                    <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 3 }}>
+                      {(o.items || []).length} item{(o.items || []).length !== 1 ? "s" : ""} · {fmt(o.total)}
+                      {o.date && " · " + new Date(o.date).toLocaleDateString("en-UG", { day: "numeric", month: "short" })}
+                    </p>
+                  </div>
+                  <button className="btn secondary" style={{ fontSize: 12, padding: "6px 14px", flexShrink: 0 }}
+                    onClick={() => onOrder(o)}>View</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+window.LP_Profile = Profile;
+
 
 // tweaks-panel.jsx
 // Reusable Tweaks shell + form-control helpers.
@@ -4897,6 +5068,7 @@ function App() {
   const [cart, setCart] = useState([]);
   const [redeemPts, setRedeemPts] = useState(0);
   const [order, setOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [toast, setToast] = useState("");
 
   const showToast = (msg) => {
@@ -4962,7 +5134,9 @@ function App() {
   };
   const handlePlaceOrder = (orderInfo) => {
     const snapshot = [...cart];
-    setOrder({ ...orderInfo, items: snapshot });
+    const fullOrder = { ...orderInfo, items: snapshot, date: new Date().toISOString(), context: { ...context } };
+    setOrder(fullOrder);
+    setOrders(prev => [fullOrder, ...prev]);
     if (account) {
       setAccount(a => ({
         ...a,
@@ -4973,7 +5147,7 @@ function App() {
     }
     setCart([]);
     setRedeemPts(0);
-    go("confirm");
+    go("processing");
   };
   const handleSignup = (form) => {
     const mock = window.LP_DATA.MOCK_ACCOUNT;
@@ -5030,6 +5204,9 @@ function App() {
         redeemPts={redeemPts} setRedeemPts={setRedeemPts}
       />;
       break;
+    case "processing":
+      content = <LP_Processing order={order} onDone={() => go("confirm")} />;
+      break;
     case "confirm":
       content = <LP_Confirmation
         order={order}
@@ -5040,6 +5217,15 @@ function App() {
       break;
     case "track":
       content = <LP_Tracking order={order} context={context} onHome={() => go("landing")} />;
+      break;
+    case "profile":
+      content = <LP_Profile
+        account={account}
+        orders={orders}
+        context={context}
+        onHome={() => go("landing")}
+        onOrder={(o) => { setOrder(o); go("confirm"); }}
+      />;
       break;
     default:
       content = <div style={{ padding: 40 }}>Page not found</div>;
@@ -5065,7 +5251,7 @@ function App() {
           }
         }}
         account={account}
-        onAccount={() => setShowSignup(true)}
+        onAccount={() => account ? go("profile") : setShowSignup(true)}
       />
       {content}
       <LP_Footer />
