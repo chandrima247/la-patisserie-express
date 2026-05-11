@@ -3495,7 +3495,7 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
     const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
     onAddCart({
       productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
-      qty: customQty, unitPrice: customizing.price + extraCost,
+      qty: 1, unitPrice: customizing.price + extraCost,
       modifiers: chosen.map(o => o.label).join(", "),
     });
     setCustomizing(null);
@@ -3632,11 +3632,11 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
         />
       )}
 
-      {/* ── Quick customizer popup (drinks) ── */}
+      {/* ── Quick customizer popup (drinks) — always adds 1; tap + again for a different config ── */}
       {customizing && (() => {
         const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
         const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
-        const total = (customizing.price + extraCost) * customQty;
+        const unitTotal = customizing.price + extraCost;
         return (
           <div className="modal-backdrop" onClick={() => setCustomizing(null)}>
             <article className="product-modal quick-customizer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
@@ -3675,17 +3675,17 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                     })}
                   </div>
                 </div>
+
+                {/* Hint */}
+                <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 14, textAlign: "center" }}>
+                  Want another with different extras? Tap + again after adding.
+                </p>
               </div>
 
-              {/* Footer: qty + add */}
+              {/* Footer: add 1 */}
               <div className="modal-foot">
-                <div className="qty-modal">
-                  <button onClick={() => setCustomQty(q => Math.max(1, q - 1))} aria-label="Less"><Icon name="minus" size={14}/></button>
-                  <strong>{customQty}</strong>
-                  <button onClick={() => setCustomQty(q => q + 1)} aria-label="More"><Icon name="plus" size={14}/></button>
-                </div>
                 <button className="btn full" onClick={confirmCustom}>
-                  Add{customQty > 1 ? " " + customQty : ""} · {formatUGX(total)}
+                  Add · {formatUGX(unitTotal)}
                 </button>
               </div>
             </article>
