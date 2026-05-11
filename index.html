@@ -3009,101 +3009,105 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm }) => {
 
   const select = (s) => { setQ(s); setOpen(false); };
 
-  const confirm = () => {
-    if (!q.trim()) return;
-    onConfirm({ address: q });
-  };
+  const confirm = () => { if (q.trim()) onConfirm({ address: q }); };
 
   return (
-    <div className="page" data-screen-label="06 Delivery Address" style={{ minHeight: "100vh", background: "var(--bg)" }}>
-      {/* Dark header */}
-      <div style={{ background: "var(--ink-800)", padding: "24px 20px 36px" }}>
-        <button className="back-btn" onClick={onBack} style={{ color: "rgba(255,255,255,0.6)", marginBottom: 20 }}>
-          <Icon name="arrow-left" size={16}/> Back
-        </button>
-        <div className="eyebrow" style={{ color: "var(--gold-300)", marginBottom: 8 }}>Delivery</div>
-        <h2 style={{ color: "#fff", fontFamily: "var(--font-serif)", fontSize: "var(--fs-30)", fontWeight: 500, lineHeight: 1.2, margin: "0 0 24px" }}>
-          Where should we<br/>deliver?
-        </h2>
+    <div className="page" data-screen-label="06 Delivery Address">
+      {/* Back — same pattern as OutletPicker */}
+      <div className="container back-row">
+        <button className="back-btn" onClick={onBack}><Icon name="arrow-left" size={16}/> Back</button>
+      </div>
 
-        {/* Input + dropdown */}
-        <div style={{ position: "relative" }}>
-          <div className="delivery-input-wrap" style={{ background: "#fff", borderRadius: "var(--r-md)" }}>
-            <Icon name="pin" size={20} style={{ color: "var(--brand)" }}/>
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Type your area or street…"
-              value={q}
-              onChange={e => { setQ(e.target.value); setOpen(true); }}
-              onFocus={() => setOpen(true)}
-              autoFocus
-              style={{ color: "var(--ink-800)", background: "transparent" }}
-            />
-            {q && (
-              <button className="clr" onClick={() => { setQ(""); setOpen(false); inputRef.current?.focus(); }} aria-label="Clear">
-                <Icon name="close" size={16}/>
-              </button>
+      {/* Banner — same as OutletPicker */}
+      <section className="banner" style={{ paddingTop: "var(--sp-8)", paddingBottom: "var(--sp-8)" }}>
+        <div className="container">
+          <div className="eyebrow">Step 2 of 3 · Delivery address</div>
+          <h1>Where should we <em>deliver?</em></h1>
+          <p>Type your area or street and we'll match you to the nearest outlet.</p>
+        </div>
+      </section>
+
+      {/* Search — same wrapper class as outlet search */}
+      <div className="outlet-search">
+        <div className="container">
+          <div style={{ position: "relative" }}>
+            <div className="search-input">
+              <Icon name="pin" size={18}/>
+              <input
+                ref={inputRef}
+                className="input"
+                placeholder="e.g. Kololo, Acacia Avenue…"
+                value={q}
+                onChange={e => { setQ(e.target.value); setOpen(true); }}
+                onFocus={() => setOpen(true)}
+                autoFocus
+              />
+              {q && (
+                <button style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", padding: "0 4px", display: "flex" }}
+                  onClick={() => { setQ(""); setOpen(false); inputRef.current?.focus(); }} aria-label="Clear">
+                  <Icon name="close" size={15}/>
+                </button>
+              )}
+            </div>
+
+            {/* Autocomplete dropdown */}
+            {open && filtered.length > 0 && (
+              <div style={{
+                position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 50,
+                background: "#fff", borderRadius: "var(--r-md)", boxShadow: "var(--shadow-lg)",
+                border: "1px solid var(--border)", maxHeight: 240, overflowY: "auto",
+              }}>
+                {filtered.map((s, i) => (
+                  <button key={i} type="button" onClick={() => select(s)} style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    width: "100%", textAlign: "left", padding: "12px 16px",
+                    background: "none", border: "none",
+                    borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
+                    cursor: "pointer", fontSize: 14, color: "var(--ink-700)",
+                  }}>
+                    <Icon name="pin" size={15} style={{ color: "var(--ink-400)", flexShrink: 0 }}/>
+                    {s}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-
-          {open && filtered.length > 0 && (
-            <div style={{
-              position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-              background: "#fff", borderRadius: "var(--r-md)", boxShadow: "var(--shadow-lg)",
-              zIndex: 50, maxHeight: 220, overflowY: "auto",
-            }}>
-              {filtered.map((s, i) => (
-                <button key={i} type="button" onClick={() => select(s)} style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  width: "100%", textAlign: "left", padding: "12px 16px",
-                  background: "none", border: "none",
-                  borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none",
-                  cursor: "pointer", fontSize: 14, color: "var(--ink-700)",
-                }}>
-                  <Icon name="pin" size={15} style={{ color: "var(--ink-300)", flexShrink: 0 }}/>
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Body */}
-      <div style={{ padding: "28px 20px" }}>
-        {q.trim() && (
-          <div style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: "14px 16px", borderRadius: "var(--r-md)",
-            background: "var(--cream-100)", border: "1px solid var(--gold-200)",
-            marginBottom: 24,
-          }}>
-            <Icon name="pin" size={18} style={{ color: "var(--brand)", flexShrink: 0 }}/>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 12, color: "var(--fg-muted)", marginBottom: 2 }}>Delivering to</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink-800)" }}>{q}</div>
+      {/* Body — same container as outlet-list */}
+      <div className="container outlet-list" style={{ paddingTop: "var(--sp-6)" }}>
+        {q.trim() ? (
+          <>
+            {/* Selected address row — styled like an outlet-row but non-clickable */}
+            <div className="outlet-row nearest" style={{ pointerEvents: "none" }}>
+              <span className="pin"><Icon name="pin" size={20}/></span>
+              <div className="info">
+                <h4>{q}</h4>
+                <div className="meta">
+                  <span>Delivery · 30–45 min</span>
+                  <span>UGX 5,000 fee</span>
+                </div>
+                <div className="tags">
+                  <span className="badge success">Selected</span>
+                </div>
+              </div>
             </div>
-            <button type="button" onClick={() => { setQ(""); inputRef.current?.focus(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", padding: 4 }}>
-              <Icon name="close" size={14}/>
-            </button>
-          </div>
-        )}
 
-        <div style={{
-          display: "flex", gap: 12, padding: "14px 16px",
-          background: "var(--ink-50)", borderRadius: "var(--r-md)", marginBottom: 28,
-        }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>🏠</span>
-          <p style={{ margin: 0, fontSize: 13, color: "var(--fg-muted)", lineHeight: 1.6 }}>
-            Add your exact apartment, floor, or gate details at checkout.
+            <div style={{ padding: "20px 0 0" }}>
+              <p style={{ fontSize: 13, color: "var(--fg-muted)", marginBottom: 20, lineHeight: 1.6 }}>
+                🏠 Apartment, floor, and gate details can be added at checkout.
+              </p>
+              <button className="btn full lg" onClick={confirm}>
+                Browse menu
+              </button>
+            </div>
+          </>
+        ) : (
+          <p style={{ fontSize: 13, color: "var(--fg-muted)", textAlign: "center", padding: "40px 0" }}>
+            Start typing your area above to get suggestions.
           </p>
-        </div>
-
-        <button className="btn full lg" disabled={!q.trim()} onClick={confirm}>
-          Browse menu
-        </button>
+        )}
       </div>
     </div>
   );
