@@ -2468,7 +2468,7 @@ window.ProductImg = ProductImg;
 
 /* Loyalty signup modal + dashboard */
 
-const SIGNUP_OTP_NAMES = { "0":"Alex K.","1":"Chandrima G.","2":"Brian O.","3":"Sarah M.","4":"David L.","5":"Grace N.","6":"Peter W.","7":"Mary A.","8":"James T.","9":"Faith R." };
+const SIGNUP_OTP_NAMES = { "0":"Alex K.","1":"Grace M.","2":"Brian O.","3":"Sarah M.","4":"David L.","5":"Grace N.","6":"Peter W.","7":"Mary A.","8":"James T.","9":"Faith R." };
 
 const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
   const [step, setStep]         = useState("phone"); // "phone" | "otp" | "name"
@@ -3899,7 +3899,7 @@ const PAYMENT_METHODS = [
   { id: "cash",  label: "Cash on collection", desc: "Pay at pickup — cash or card",  icon: "wallet" },
 ];
 
-const OTP_NAMES = { "0":"Alex K.","1":"Chandrima G.","2":"Brian O.","3":"Sarah M.","4":"David L.","5":"Grace N.","6":"Peter W.","7":"Mary A.","8":"James T.","9":"Faith R." };
+const OTP_NAMES = { "0":"Alex K.","1":"Grace M.","2":"Brian O.","3":"Sarah M.","4":"David L.","5":"Grace N.","6":"Peter W.","7":"Mary A.","8":"James T.","9":"Faith R." };
 
 const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty, onRemove, onConfirm, redeemPts, setRedeemPts }) => {
   const fmt = window.LP_DATA.formatUGX;
