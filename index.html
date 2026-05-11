@@ -3882,6 +3882,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
   const fmt = window.LP_DATA.formatUGX;
   const [phone, setPhone] = useState(account?.phone || "");
   const [orderNote, setOrderNote] = useState("");
+  const [showNote, setShowNote] = useState(false);
   const [otpStep, setOtpStep]   = useState("phone"); // "phone" | "otp" | "verified"
   const [otp, setOtp]           = useState("");
   const [otpSending, setOtpSending] = useState(false);
@@ -3972,14 +3973,26 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
 
               {/* Order note */}
               <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
-                <textarea
-                  className="input"
-                  rows={2}
-                  placeholder="Add a note for the kitchen… (allergies, preferences)"
-                  value={orderNote}
-                  onChange={e => setOrderNote(e.target.value)}
-                  style={{ resize: "none", lineHeight: 1.5, fontSize: 13, color: "var(--ink-700)" }}
-                />
+                {!showNote ? (
+                  <button onClick={() => setShowNote(true)} style={{
+                    background: "none", border: "none", cursor: "pointer", padding: 0,
+                    fontSize: 13, fontWeight: 600, color: "var(--brand-live)",
+                    display: "flex", alignItems: "center", gap: 5,
+                  }}>
+                    <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add instructions
+                    <span style={{ fontWeight: 400, color: "var(--fg-muted)" }}>(less sugar, no ice…)</span>
+                  </button>
+                ) : (
+                  <textarea
+                    autoFocus
+                    className="input"
+                    rows={2}
+                    placeholder="e.g. Less sugar, no ice, extra hot…"
+                    value={orderNote}
+                    onChange={e => setOrderNote(e.target.value)}
+                    style={{ resize: "none", lineHeight: 1.5, fontSize: 13, color: "var(--ink-700)" }}
+                  />
+                )}
               </div>
             </div>
 
