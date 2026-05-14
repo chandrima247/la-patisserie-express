@@ -3572,8 +3572,8 @@ const MODIFIER_GROUPS = {
 const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, onRemove, onOpenCart }) => {
   const { CATEGORIES, PRODUCTS, formatUGX } = window.LP_DATA;
   const [activeCat, setActiveCat] = useState(CATEGORIES[0].id);
-  const [expandedId, setExpandedId] = useState(null);     // drink card expanded inline
-  const [expandedExtras, setExpandedExtras] = useState({});  // toggled extras for inline card
+  const [customizing, setCustomizing] = useState(null);
+  const [selExtras, setSelExtras] = useState({});
   const sectionRefs = useRef({});
 
   // Total qty in cart for a product (all modifier variants summed)
@@ -3589,11 +3589,10 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
     else onRemove(last._idx);
   };
 
-  // Add one more of a drink — re-expand inline; for food reuse existing
   const addOne = (p, e) => {
     e.stopPropagation();
     if (p.drink) {
-      setExpandedId(p.id); setExpandedExtras({});
+      setCustomizing(p); setSelExtras({});
     } else {
       const existing = cart.find(i => i.productId === p.id);
       onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1,
@@ -3601,38 +3600,22 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
     }
   };
 
-  // First-time add
   const handlePlus = (p, e) => {
     e.stopPropagation();
     if (p.drink) {
-      setExpandedId(expandedId === p.id ? null : p.id);
-      setExpandedExtras({});
+      setCustomizing(p); setSelExtras({});
     } else {
       onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1, unitPrice: p.price, modifiers: "" });
     }
   };
 
-  // Confirm drink from inline card expansion
-  const confirmInline = (p) => {
-    const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
-    const chosen = extOpts.filter(o => expandedExtras[o.id]);
-    const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
-    onAddCart({
-      productId: p.id, name: p.name, img: p.img, meta: p.meta,
-      qty: 1, unitPrice: p.price + extraCost,
-      modifiers: chosen.map(o => o.label).join(", "),
-    });
-    setExpandedId(null);
-    setExpandedExtras({});
-  };
-
-  // Legacy stub (unused but avoids any stale ref errors)
   const confirmCustom = () => {
     const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
-    const chosen = extOpts.filter(o => expandedExtras[o.id]);
+    const chosen = extOpts.filter(o => selExtras[o.id]);
     const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
     onAddCart({
-      productId: expandedId, qty: 1, unitPrice: extraCost,
+      productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
+      qty: 1, unitPrice: customizing.price + extraCost,
       modifiers: chosen.map(o => o.label).join(", "),
     });
     setCustomizing(null);
@@ -3715,9 +3698,7 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                 {items.map(p => {
                   const qty = productQty(p.id);
                   return (
-                    <article key={p.id}
-                      className={"product-card" + (expandedId === p.id ? " expanded" : "")}
-                      onClick={() => expandedId === p.id && setExpandedId(null)}>
+                    <article key={p.id} className="product-card">
                       <div className="product-art">
                         <ProductImg src={p.img} alt={p.name} name={p.name} category={p.category} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         {p.tag && (
@@ -3744,32 +3725,6 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                           )}
                         </div>
                       </div>
-
-                      {/* Inline extras — drink only */}
-                      {p.drink && expandedId === p.id && (() => {
-                        const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
-                        const extraCost = extOpts.filter(o => expandedExtras[o.id]).reduce((s, o) => s + o.extra, 0);
-                        return (
-                          <div className="inline-extras" onClick={e => e.stopPropagation()}>
-                            <div className="inline-chips">
-                              {extOpts.map(o => {
-                                const on = !!expandedExtras[o.id];
-                                return (
-                                  <button key={o.id} type="button"
-                                    className={"extra-chip" + (on ? " on" : "")}
-                                    onClick={() => setExpandedExtras(s => ({ ...s, [o.id]: !s[o.id] }))}>
-                                    {o.label}
-                                    <span className="chip-price">+{formatUGX(o.extra)}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <button className="inline-add-btn" onClick={() => confirmInline(p)}>
-                              {extraCost > 0 ? `Add · ${formatUGX(p.price + extraCost)}` : "Add to order"}
-                            </button>
-                          </div>
-                        );
-                      })()}
                     </article>
                   );
                 })}
@@ -3788,6 +3743,74 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
           <span className="vc-cta">View cart</span>
         </button>
       )}
+
+      {/* ── Drink extras popup (Zomato-style) ── */}
+      {customizing && (() => {
+        const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
+        const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
+        const total = customizing.price + extraCost;
+        return (
+          <div className="modal-backdrop" onClick={() => setCustomizing(null)}>
+            <article className="product-modal quick-customizer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "20px 20px 14px" }}>
+                <div>
+                  <h2 className="serif" style={{ fontSize: 19, lineHeight: 1.2, color: "var(--ink-800)" }}>{customizing.name}</h2>
+                  <p style={{ fontSize: 13, color: "var(--fg-muted)", marginTop: 3 }}>{customizing.meta}</p>
+                </div>
+                <button onClick={() => setCustomizing(null)} style={{
+                  background: "var(--ink-100)", border: "none", cursor: "pointer", flexShrink: 0,
+                  borderRadius: "var(--r-full)", width: 30, height: 30,
+                  display: "grid", placeItems: "center", color: "var(--ink-500)",
+                }}><Icon name="close" size={14}/></button>
+              </div>
+
+              {/* Extras section */}
+              <div style={{ borderTop: "1px solid var(--border)", padding: "14px 20px 4px" }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-800)", marginBottom: 2 }}>Add-ons</p>
+                <p style={{ fontSize: 12, color: "var(--fg-muted)", marginBottom: 12 }}>All optional — just tap to include</p>
+
+                {extOpts.map(o => {
+                  const checked = !!selExtras[o.id];
+                  return (
+                    <label key={o.id} onClick={() => setSelExtras(s => ({ ...s, [o.id]: !s[o.id] }))} style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      padding: "13px 0", borderBottom: "1px solid var(--border)", cursor: "pointer",
+                    }}>
+                      <span style={{ fontSize: 14, color: "var(--ink-800)", fontWeight: 400 }}>{o.label}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ fontSize: 13, color: "var(--fg-muted)", fontWeight: 500 }}>+{formatUGX(o.extra)}</span>
+                        {/* Checkbox */}
+                        <div style={{
+                          width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+                          border: checked ? "none" : "2px solid var(--ink-300)",
+                          background: checked ? "var(--brand-live)" : "#fff",
+                          display: "grid", placeItems: "center", transition: "all .15s",
+                        }}>
+                          {checked && <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polyline points="2 6 5 9 10 3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Footer — always active */}
+              <div style={{ padding: "16px 20px 20px" }}>
+                <button onClick={confirmCustom} style={{
+                  width: "100%", padding: "14px 20px", borderRadius: "var(--r-pill)",
+                  border: "none", background: "var(--brand-live)",
+                  color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
+                }}>
+                  Add item · {formatUGX(total)}
+                </button>
+              </div>
+
+            </article>
+          </div>
+        );
+      })()}
 
     </div>
   );
