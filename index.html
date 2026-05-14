@@ -1547,6 +1547,11 @@ a { color: inherit; text-decoration: none; }
   animation: popIn .22s var(--ease-emphasis) both;
   margin: auto;
   align-self: center;
+  overflow: hidden;
+}
+.quick-customizer .modal-foot {
+  border-bottom-left-radius: var(--r-xl);
+  border-bottom-right-radius: var(--r-xl);
 }
 @keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .modal-backdrop:has(.quick-customizer) { align-items: center; padding: var(--sp-5); }
