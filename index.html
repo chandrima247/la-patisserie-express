@@ -2543,7 +2543,6 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
               <p style={{ fontSize: 14, color: "var(--fg-muted)", marginBottom: 20 }}>
                 Enter your number and we'll send a quick verification code.
               </p>
-              <label className="lbl">Phone number</label>
               <div className="phone-wrap" style={{ marginTop: 6 }}>
                 <span className="phone-prefix">UG +256</span>
                 <input autoFocus className="input" inputMode="numeric" maxLength={9}
@@ -2551,7 +2550,6 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
                   onChange={e => setPhone(e.target.value.replace(/\D/g,"").slice(0,9))}
                   onKeyDown={e => e.key === "Enter" && sendOtp()}/>
               </div>
-              <p className="hint" style={{ marginTop: 6 }}>9 digits, no leading zero</p>
               <button className="btn full lg" style={{ marginTop: 20 }}
                 onClick={sendOtp} disabled={phone.length < 9 || sending}>
                 {sending ? "Sending code…" : "Send verification code"}
