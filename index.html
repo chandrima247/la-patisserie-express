@@ -3420,43 +3420,36 @@ const DeliveryAddress = ({ outlets, onBack, onConfirm, orders = [] }) => {
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)" }}>Address details</div>
               </div>
 
-              {[
-                { label: "Address details", placeholder: "Apt, floor, building name…", value: apt, onChange: setApt },
-                { label: "Nearby landmark", placeholder: "e.g. Next to Nakumatt (optional)", value: landmark, onChange: setLandmark },
-              ].map((f, i) => (
-                <div key={f.label} style={{
-                  display: "flex", alignItems: "center",
-                  borderBottom: "1px solid var(--border)",
-                  padding: "0 20px",
-                }}>
-                  <label style={{
-                    fontSize: 13, fontWeight: 500, color: "var(--ink-600)",
-                    width: 120, flexShrink: 0, paddingRight: 12,
-                  }}>{f.label}</label>
-                  <input
-                    style={{
-                      flex: 1, border: "none", outline: "none", background: "transparent",
-                      fontSize: 14, color: "var(--ink-800)", padding: "14px 0",
-                    }}
-                    placeholder={f.placeholder}
-                    value={f.value}
-                    onChange={e => f.onChange(e.target.value)}
-                  />
-                </div>
-              ))}
-              {/* Delivery instructions */}
-              <div style={{ padding: "12px 20px" }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-600)", display: "block", marginBottom: 6 }}>
-                  Delivery instructions <span style={{ fontWeight: 400, color: "var(--fg-muted)" }}>(optional)</span>
+              {/* Required: address detail */}
+              <div style={{ display: "flex", alignItems: "center", borderBottom: "1px solid var(--border)", padding: "0 20px" }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-700)", width: 130, flexShrink: 0, paddingRight: 12 }}>
+                  Apt / Floor / Block
                 </label>
-                <textarea
-                  style={{
-                    width: "100%", border: "none", outline: "none", background: "transparent",
-                    fontSize: 14, color: "var(--ink-800)", lineHeight: 1.5, resize: "none",
-                    minHeight: 56, padding: 0, fontFamily: "inherit",
-                  }}
-                  placeholder="e.g. Gate code 1234. Leave with security."
-                  rows={2}
+                <input
+                  style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 14, color: "var(--ink-800)", padding: "14px 0" }}
+                  placeholder="e.g. Apt 4B, 3rd floor…"
+                  value={apt}
+                  onChange={e => setApt(e.target.value)}
+                />
+              </div>
+
+              {/* Optional fields — visually lighter */}
+              <div style={{ display: "flex", alignItems: "center", borderBottom: "1px solid var(--border)", padding: "0 20px", background: "var(--cream-50, #fdfaf7)" }}>
+                <label style={{ fontSize: 12, fontWeight: 400, color: "var(--fg-muted)", width: 130, flexShrink: 0, paddingRight: 12 }}>
+                  Landmark <span style={{ fontSize: 11 }}>(optional)</span>
+                </label>
+                <input
+                  style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 13, color: "var(--ink-700)", padding: "12px 0" }}
+                  placeholder="e.g. Next to Nakumatt"
+                  value={landmark}
+                  onChange={e => setLandmark(e.target.value)}
+                />
+              </div>
+
+              <div style={{ padding: "10px 20px", background: "var(--cream-50, #fdfaf7)" }}>
+                <input
+                  style={{ width: "100%", border: "none", outline: "none", background: "transparent", fontSize: 13, color: "var(--ink-700)", padding: "2px 0", fontFamily: "inherit" }}
+                  placeholder="Delivery note, e.g. gate code, leave with security… (optional)"
                   value={instructions}
                   onChange={e => setInstructions(e.target.value)}
                 />
