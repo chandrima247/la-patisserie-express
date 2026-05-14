@@ -2609,13 +2609,26 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
   const [sending, setSending]   = useState(false);
   const [otpErr, setOtpErr]     = useState(false);
   const [name, setName]         = useState(prefill?.name || "");
+  const [signupResendCooldown, setSignupResendCooldown] = useState(0);
+  const signupResendTimer = useRef(null);
 
-  useEffect(() => { if (open) { setStep("phone"); setPhone(""); setOtp(""); setName(""); setOtpErr(false); } }, [open]);
+  useEffect(() => { if (open) { setStep("phone"); setPhone(""); setOtp(""); setName(""); setOtpErr(false); setSignupResendCooldown(0); } }, [open]);
 
   const sendOtp = () => {
     if (phone.length < 9) return;
     setSending(true);
     setTimeout(() => { setSending(false); setStep("otp"); }, 1400);
+  };
+
+  const resendSignupOtp = () => {
+    if (signupResendCooldown > 0) return;
+    setOtp(""); setOtpErr(false); setSending(true);
+    setTimeout(() => { setSending(false); }, 1400);
+    setSignupResendCooldown(30);
+    clearInterval(signupResendTimer.current);
+    signupResendTimer.current = setInterval(() => {
+      setSignupResendCooldown(c => { if (c <= 1) { clearInterval(signupResendTimer.current); return 0; } return c - 1; });
+    }, 1000);
   };
 
   const verifyOtp = (val) => {
@@ -2706,6 +2719,17 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
                 }}
                 style={{ letterSpacing: "0.25em", fontWeight: 700, fontSize: 20, textAlign: "center" }}/>
               {otpErr && <p style={{ fontSize: 12, color: "var(--error-500)", marginTop: 6 }}>Incorrect code — try again.</p>}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+                <button onClick={resendSignupOtp} disabled={signupResendCooldown > 0 || sending} style={{
+                  background: "none", border: "none", padding: 0,
+                  cursor: signupResendCooldown > 0 ? "default" : "pointer",
+                  fontSize: 13, fontWeight: 600,
+                  color: signupResendCooldown > 0 ? "var(--fg-muted)" : "var(--brand-live)",
+                }}>
+                  {sending ? "Sending…" : signupResendCooldown > 0 ? `Resend in ${signupResendCooldown}s` : "Resend code"}
+                </button>
+                <button onClick={() => setStep("phone")} style={{ background: "none", border: "none", color: "var(--ink-400)", cursor: "pointer", fontSize: 12, fontWeight: 500, padding: 0 }}>Change number</button>
+              </div>
             </>
           )}
 
@@ -3970,6 +3994,8 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
   const [otp, setOtp]           = useState("");
   const [otpSending, setOtpSending] = useState(false);
   const [verifiedName, setVerifiedName] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const resendTimerRef = useRef(null);
   const [apt, setApt] = useState("");
   const [moreDetails, setMoreDetails] = useState("");
   const [deliveryAddr, setDeliveryAddr] = useState(context.address || "");
@@ -4019,6 +4045,19 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
     if (phone.length < 9) return;
     setOtpSending(true);
     setTimeout(() => { setOtpSending(false); setOtpStep("otp"); setOtp(""); }, 1400);
+  };
+
+  const resendOtp = () => {
+    if (resendCooldown > 0) return;
+    setOtp("");
+    setOtpSending(true);
+    setTimeout(() => { setOtpSending(false); setOtp(""); }, 1400);
+    // 30-second cooldown
+    setResendCooldown(30);
+    clearInterval(resendTimerRef.current);
+    resendTimerRef.current = setInterval(() => {
+      setResendCooldown(c => { if (c <= 1) { clearInterval(resendTimerRef.current); return 0; } return c - 1; });
+    }, 1000);
   };
 
   const doPlace = (name) => {
@@ -4370,8 +4409,15 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                       placeholder="4-digit code"
                       autoFocus
                       style={{ width: "100%", letterSpacing: "0.3em", fontWeight: 700, fontSize: 22, textAlign: "center" }}/>
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                      <button onClick={() => { setOtpStep("phone"); setOtp(""); }} style={{ background: "none", border: "none", color: "var(--brand-live)", cursor: "pointer", fontSize: 12, fontWeight: 600, padding: 0 }}>Change number</button>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+                      <button onClick={resendOtp} disabled={resendCooldown > 0} style={{
+                        background: "none", border: "none", cursor: resendCooldown > 0 ? "default" : "pointer",
+                        fontSize: 12, fontWeight: 600, padding: 0,
+                        color: resendCooldown > 0 ? "var(--fg-muted)" : "var(--brand-live)",
+                      }}>
+                        {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                      </button>
+                      <button onClick={() => { setOtpStep("phone"); setOtp(""); }} style={{ background: "none", border: "none", color: "var(--ink-400)", cursor: "pointer", fontSize: 12, fontWeight: 500, padding: 0 }}>Change number</button>
                     </div>
                   </div>
                 )}
