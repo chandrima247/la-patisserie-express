@@ -3942,7 +3942,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
         const name = OTP_NAMES[phone.slice(-1)] || "Valued Customer";
         setVerifiedName(name);
         setOtpStep("verified");
-        setTimeout(() => doPlace(name), 400); // brief pause so user sees verified state
+        setTimeout(() => doPlace(name), 700); // brief pause so user sees verified state
       } else {
         setTimeout(() => setOtp(""), 600); // shake & clear wrong code
       }
@@ -4160,7 +4160,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                   opacity: (otpStep === "otp" || (otpStep === "phone" && phone.length < 9)) ? 0.45 : 1,
                   cursor: (otpStep === "otp" || (otpStep === "phone" && phone.length < 9)) ? "default" : "pointer",
                 }}>
-                {otpSending ? "Sending verification…" : otpStep === "otp" ? "Waiting for code…" : `Place order · ${fmt(total)}`}
+                {otpSending ? "Sending verification…" : otpStep === "otp" ? "Waiting for code…" : otpStep === "verified" ? "Placing order…" : `Place order · ${fmt(total)}`}
               </button>
 
               {account && earn > 0 && (
@@ -4318,9 +4318,9 @@ const Processing = ({ order, onDone }) => {
   const fmt = window.LP_DATA.formatUGX;
   const [step, setStep] = useState(0);
   useEffect(() => {
-    const t1 = setTimeout(() => setStep(1), 900);
-    const t2 = setTimeout(() => setStep(2), 1900);
-    const t3 = setTimeout(onDone, 2900);
+    const t1 = setTimeout(() => setStep(1), 1200);
+    const t2 = setTimeout(() => setStep(2), 2800);
+    const t3 = setTimeout(onDone, 4200);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
   const steps = [
