@@ -2568,14 +2568,12 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
                 color: "var(--brand-live)", cursor: "pointer", padding: 0, marginBottom: 20,
               }}>Change number</button>
 
-              <label className="lbl">Verification code</label>
               <input autoFocus className="input" inputMode="numeric" maxLength={4}
                 placeholder="4-digit code"
                 value={otp} onChange={e => { setOtpErr(false); setOtp(e.target.value.replace(/\D/g,"").slice(0,4)); }}
                 onKeyDown={e => e.key === "Enter" && verifyOtp()}
-                style={{ marginTop: 6, letterSpacing: "0.25em", fontWeight: 700, fontSize: 20, textAlign: "center" }}/>
+                style={{ letterSpacing: "0.25em", fontWeight: 700, fontSize: 20, textAlign: "center" }}/>
               {otpErr && <p style={{ fontSize: 12, color: "var(--error-500)", marginTop: 6 }}>Incorrect code — try again.</p>}
-              <p className="hint" style={{ marginTop: 6 }}>Demo: use <strong>1234</strong></p>
 
               <button className="btn full lg" style={{ marginTop: 20 }}
                 onClick={verifyOtp} disabled={otp.length < 4}>
