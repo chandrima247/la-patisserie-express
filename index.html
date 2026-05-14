@@ -4300,24 +4300,18 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                 border: "1px solid var(--border)", marginBottom: 16, overflow: "hidden",
               }}>
                 {/* Address row */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 14px" }}>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 4 }}>
-                      {context.mode === "delivery" ? "Delivering to" : "Pickup at"}
-                    </p>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-800)", lineHeight: 1.3 }}>
-                      {context.mode === "delivery" ? (deliveryAddr || context.address) : context.outlet?.name}
-                    </p>
-                    <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 3 }}>
-                      {context.mode === "delivery"
-                        ? `${context.outlet?.name} · ETA 30–45 min`
-                        : `${context.outlet?.area} · ${context.outlet?.hours}`}
-                    </p>
-                  </div>
-                  <button onClick={onChangeAddress} style={{
-                    flexShrink: 0, background: "none", border: "none", cursor: "pointer",
-                    fontSize: 13, fontWeight: 600, color: "var(--brand-live)", padding: "2px 0",
-                  }}>Edit</button>
+                <div style={{ padding: "12px 14px" }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 4 }}>
+                    {context.mode === "delivery" ? "Delivering to" : "Pickup at"}
+                  </p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-800)", lineHeight: 1.3 }}>
+                    {context.mode === "delivery" ? (deliveryAddr || context.address) : context.outlet?.name}
+                  </p>
+                  <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 3 }}>
+                    {context.mode === "delivery"
+                      ? `${context.outlet?.name} · ETA 30–45 min`
+                      : `${context.outlet?.area} · ${context.outlet?.hours}`}
+                  </p>
                 </div>
 
               </div>
