@@ -2546,7 +2546,7 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
               <div className="phone-wrap" style={{ marginTop: 6 }}>
                 <span className="phone-prefix">UG +256</span>
                 <input autoFocus className="input" inputMode="numeric" maxLength={9}
-                  placeholder="703 631 215" value={phone}
+                  placeholder="7XX XXX XXX" value={phone}
                   onChange={e => setPhone(e.target.value.replace(/\D/g,"").slice(0,9))}
                   onKeyDown={e => e.key === "Enter" && sendOtp()}/>
               </div>
@@ -4120,7 +4120,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                     <span className="phone-prefix">UG +256</span>
                     <input className="input" inputMode="numeric" maxLength={9} value={phone}
                       onChange={e => setPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
-                      placeholder="703 000 000" autoFocus/>
+                      placeholder="7XX XXX XXX" autoFocus/>
                   </div>
                 )}
 
