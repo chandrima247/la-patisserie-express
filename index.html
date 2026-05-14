@@ -4128,7 +4128,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                 {otpStep === "otp" && (
                   <div>
                     <p style={{ fontSize: 13, color: "var(--fg-muted)", marginBottom: 10 }}>
-                      Code sent to <strong style={{ color: "var(--ink-800)" }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)}</strong>
+                      Code sent to <strong style={{ color: "var(--ink-800)" }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)}</strong>. Enter it to place your order.
                     </p>
                     <input className="input" inputMode="numeric" maxLength={4} value={otp}
                       onChange={e => handleOtpChange(e.target.value)}
