@@ -700,7 +700,7 @@ a { color: inherit; text-decoration: none; }
 }
 @media (max-width: 600px) {
   .hero-photo img {
-    object-position: 55% 10%;
+    object-position: center center;
   }
 }
 .hero-photo::after {
@@ -2849,7 +2849,10 @@ window.LP_LoyaltyDashboard = LoyaltyDashboard;
 const HeroFullBleed = ({ onOrder, onLoyalty }) => (
   <section className="hero" data-comment-anchor="hero">
     <div className="hero-photo">
-      <img src="ds/assets/hero.png" alt="" />
+      <picture>
+        <source srcSet="ds/assets/hero-mobile.png" media="(max-width: 600px)" />
+        <img src="ds/assets/hero.png" alt="" />
+      </picture>
     </div>
     <div className="container">
       <div className="hero-inner">
