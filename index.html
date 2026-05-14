@@ -1554,6 +1554,37 @@ a { color: inherit; text-decoration: none; }
   border-bottom-right-radius: var(--r-xl);
 }
 @keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ── Inline drink extras ── */
+.inline-extras {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px 14px;
+  animation: expandIn .18s ease both;
+}
+.inline-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+}
+.extra-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 11px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--border); background: #fff;
+  font-size: 12px; cursor: pointer; color: var(--ink-700);
+  transition: border-color .15s, background .15s, color .15s;
+  font-family: inherit;
+}
+.extra-chip.on {
+  border-color: var(--brand-live); background: rgba(158,11,15,0.05); color: var(--brand-live);
+}
+.extra-chip .chip-price { font-size: 11px; color: var(--fg-muted); margin-left: 2px; }
+.extra-chip.on .chip-price { color: var(--brand-live); }
+.inline-add-btn {
+  width: 100%; padding: 10px; border-radius: var(--r-pill);
+  background: var(--brand-live); color: #fff; border: none;
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: opacity .15s;
+}
+.product-card.expanded { box-shadow: 0 0 0 2px var(--brand-live); }
+@keyframes expandIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 .modal-backdrop:has(.quick-customizer) { align-items: center; padding: var(--sp-5); }
 
 .modal-art {
@@ -3541,8 +3572,8 @@ const MODIFIER_GROUPS = {
 const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, onRemove, onOpenCart }) => {
   const { CATEGORIES, PRODUCTS, formatUGX } = window.LP_DATA;
   const [activeCat, setActiveCat] = useState(CATEGORIES[0].id);
-  const [customizing, setCustomizing] = useState(null);   // drink being customized
-  const [selExtras, setSelExtras] = useState({});         // toggled extras for current item
+  const [expandedId, setExpandedId] = useState(null);     // drink card expanded inline
+  const [expandedExtras, setExpandedExtras] = useState({});  // toggled extras for inline card
   const sectionRefs = useRef({});
 
   // Total qty in cart for a product (all modifier variants summed)
@@ -3558,12 +3589,11 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
     else onRemove(last._idx);
   };
 
-  // Add one more of a non-drink product (reuses existing modifiers)
+  // Add one more of a drink — re-expand inline; for food reuse existing
   const addOne = (p, e) => {
     e.stopPropagation();
     if (p.drink) {
-      // For drinks, re-open customizer so user can pick extras for this extra cup
-      setCustomizing(p); setSelExtras({}); setStagedItems([]);
+      setExpandedId(p.id); setExpandedExtras({});
     } else {
       const existing = cart.find(i => i.productId === p.id);
       onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1,
@@ -3571,24 +3601,38 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
     }
   };
 
-  // First-time add (+ button when qty === 0)
+  // First-time add
   const handlePlus = (p, e) => {
     e.stopPropagation();
     if (p.drink) {
-      setCustomizing(p); setSelExtras({});
+      setExpandedId(expandedId === p.id ? null : p.id);
+      setExpandedExtras({});
     } else {
       onAddCart({ productId: p.id, name: p.name, img: p.img, meta: p.meta, qty: 1, unitPrice: p.price, modifiers: "" });
     }
   };
 
-  // Confirm drink with selected extras and add to cart
-  const confirmCustom = () => {
+  // Confirm drink from inline card expansion
+  const confirmInline = (p) => {
     const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
-    const chosen = extOpts.filter(o => selExtras[o.id]);
+    const chosen = extOpts.filter(o => expandedExtras[o.id]);
     const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
     onAddCart({
-      productId: customizing.id, name: customizing.name, img: customizing.img, meta: customizing.meta,
-      qty: 1, unitPrice: customizing.price + extraCost,
+      productId: p.id, name: p.name, img: p.img, meta: p.meta,
+      qty: 1, unitPrice: p.price + extraCost,
+      modifiers: chosen.map(o => o.label).join(", "),
+    });
+    setExpandedId(null);
+    setExpandedExtras({});
+  };
+
+  // Legacy stub (unused but avoids any stale ref errors)
+  const confirmCustom = () => {
+    const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
+    const chosen = extOpts.filter(o => expandedExtras[o.id]);
+    const extraCost = chosen.reduce((s, o) => s + o.extra, 0);
+    onAddCart({
+      productId: expandedId, qty: 1, unitPrice: extraCost,
       modifiers: chosen.map(o => o.label).join(", "),
     });
     setCustomizing(null);
@@ -3671,7 +3715,9 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                 {items.map(p => {
                   const qty = productQty(p.id);
                   return (
-                    <article key={p.id} className="product-card">
+                    <article key={p.id}
+                      className={"product-card" + (expandedId === p.id ? " expanded" : "")}
+                      onClick={() => expandedId === p.id && setExpandedId(null)}>
                       <div className="product-art">
                         <ProductImg src={p.img} alt={p.name} name={p.name} category={p.category} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         {p.tag && (
@@ -3698,6 +3744,32 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                           )}
                         </div>
                       </div>
+
+                      {/* Inline extras — drink only */}
+                      {p.drink && expandedId === p.id && (() => {
+                        const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
+                        const extraCost = extOpts.filter(o => expandedExtras[o.id]).reduce((s, o) => s + o.extra, 0);
+                        return (
+                          <div className="inline-extras" onClick={e => e.stopPropagation()}>
+                            <div className="inline-chips">
+                              {extOpts.map(o => {
+                                const on = !!expandedExtras[o.id];
+                                return (
+                                  <button key={o.id} type="button"
+                                    className={"extra-chip" + (on ? " on" : "")}
+                                    onClick={() => setExpandedExtras(s => ({ ...s, [o.id]: !s[o.id] }))}>
+                                    {o.label}
+                                    <span className="chip-price">+{formatUGX(o.extra)}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <button className="inline-add-btn" onClick={() => confirmInline(p)}>
+                              {extraCost > 0 ? `Add · ${formatUGX(p.price + extraCost)}` : "Add to order"}
+                            </button>
+                          </div>
+                        );
+                      })()}
                     </article>
                   );
                 })}
@@ -3717,83 +3789,6 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
         </button>
       )}
 
-      {/* ── Drink customizer popup ── */}
-      {customizing && (() => {
-        const extOpts = MODIFIER_GROUPS.drink.find(g => g.id === "extras")?.options || [];
-        const extraCost = extOpts.filter(o => selExtras[o.id]).reduce((s, o) => s + o.extra, 0);
-        const currentPrice = customizing.price + extraCost;
-        return (
-          <div className="modal-backdrop" onClick={() => setCustomizing(null)}>
-            <article className="product-modal quick-customizer" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
-
-              <div className="modal-body" style={{ paddingBottom: 0 }}>
-
-                {/* Title row */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                  <div>
-                    <h2 className="serif" style={{ fontSize: 20, lineHeight: 1.2 }}>{customizing.name}</h2>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-600)", marginTop: 4, display: "block" }}>{formatUGX(customizing.price)}</span>
-                  </div>
-                  <button onClick={() => setCustomizing(null)} style={{
-                    background: "var(--ink-100)", border: "none", cursor: "pointer", flexShrink: 0,
-                    borderRadius: "var(--r-full)", width: 30, height: 30, marginTop: 2,
-                    display: "grid", placeItems: "center", color: "var(--ink-500)",
-                  }}><Icon name="close" size={14}/></button>
-                </div>
-
-                {/* Extras */}
-                <div style={{ marginTop: 20 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", margin: 0 }}>
-                      Any extras?
-                    </p>
-                    <span style={{ fontSize: 11, color: "var(--fg-muted)", fontStyle: "italic" }}>optional</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {extOpts.map(o => {
-                      const on = !!selExtras[o.id];
-                      return (
-                        <button key={o.id} type="button"
-                          onClick={() => setSelExtras(s => ({ ...s, [o.id]: !s[o.id] }))}
-                          style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            width: "100%", padding: "11px 14px", borderRadius: "var(--r-md)",
-                            border: on ? "2px solid var(--brand-live)" : "1.5px solid var(--border)",
-                            background: on ? "rgba(158,11,15,0.04)" : "#fff",
-                            cursor: "pointer", textAlign: "left", transition: "all .15s",
-                          }}>
-                          <span style={{ fontSize: 14, fontWeight: 500, color: on ? "var(--brand-live)" : "var(--ink-800)" }}>
-                            {o.label}
-                          </span>
-                          <span style={{ fontSize: 13, color: on ? "var(--brand-live)" : "var(--fg-muted)", marginLeft: 12, flexShrink: 0 }}>
-                            +{formatUGX(o.extra)}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="modal-foot" style={{ flexDirection: "column", gap: 8 }}>
-                <button onClick={confirmCustom} style={{
-                  width: "100%", padding: "14px 20px", borderRadius: "var(--r-pill)",
-                  border: "none", background: "var(--brand-live)",
-                  color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
-                }}>
-                  {extraCost > 0 ? `Add to order · ${formatUGX(currentPrice)}` : "Add to order"}
-                </button>
-                {extraCost === 0 && (
-                  <p style={{ fontSize: 12, color: "var(--fg-muted)", textAlign: "center", margin: 0 }}>
-                    No extras? Just tap above ↑
-                  </p>
-                )}
-              </div>
-            </article>
-          </div>
-        );
-      })()}
     </div>
   );
 };
