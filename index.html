@@ -2491,14 +2491,15 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
     setTimeout(() => { setSending(false); setStep("otp"); }, 1400);
   };
 
-  const verifyOtp = () => {
-    if (otp === "1234") {
+  const verifyOtp = (val) => {
+    const code = val ?? otp;
+    if (code === "1234") {
       setOtpErr(false);
       setName(SIGNUP_OTP_NAMES[phone.slice(-1)] || "");
       setStep("name");
     } else {
       setOtpErr(true);
-      setOtp("");
+      setTimeout(() => setOtp(""), 600);
     }
   };
 
@@ -2552,7 +2553,7 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
               </div>
               <button className="btn full lg" style={{ marginTop: 20 }}
                 onClick={sendOtp} disabled={phone.length < 9 || sending}>
-                {sending ? "Sending code…" : "Send verification code"}
+                {sending ? "Sending code…" : "Join the Tribe"}
               </button>
             </>
           )}
@@ -2570,15 +2571,14 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
 
               <input autoFocus className="input" inputMode="numeric" maxLength={4}
                 placeholder="4-digit code"
-                value={otp} onChange={e => { setOtpErr(false); setOtp(e.target.value.replace(/\D/g,"").slice(0,4)); }}
-                onKeyDown={e => e.key === "Enter" && verifyOtp()}
+                value={otp} onChange={e => {
+                  setOtpErr(false);
+                  const val = e.target.value.replace(/\D/g,"").slice(0,4);
+                  setOtp(val);
+                  if (val.length === 4) verifyOtp(val);
+                }}
                 style={{ letterSpacing: "0.25em", fontWeight: 700, fontSize: 20, textAlign: "center" }}/>
               {otpErr && <p style={{ fontSize: 12, color: "var(--error-500)", marginTop: 6 }}>Incorrect code — try again.</p>}
-
-              <button className="btn full lg" style={{ marginTop: 20 }}
-                onClick={verifyOtp} disabled={otp.length < 4}>
-                Verify
-              </button>
             </>
           )}
 
