@@ -3749,9 +3749,12 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
 
                 {/* Extras */}
                 <div style={{ marginTop: 20 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 10 }}>
-                    Any extras?
-                  </p>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fg-muted)", margin: 0 }}>
+                      Any extras?
+                    </p>
+                    <span style={{ fontSize: 11, color: "var(--fg-muted)", fontStyle: "italic" }}>optional</span>
+                  </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {extOpts.map(o => {
                       const on = !!selExtras[o.id];
@@ -3779,14 +3782,19 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
               </div>
 
               {/* Footer */}
-              <div className="modal-foot">
+              <div className="modal-foot" style={{ flexDirection: "column", gap: 8 }}>
                 <button onClick={confirmCustom} style={{
                   width: "100%", padding: "14px 20px", borderRadius: "var(--r-pill)",
                   border: "none", background: "var(--brand-live)",
                   color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer",
                 }}>
-                  Add to order · {formatUGX(currentPrice)}
+                  {extraCost > 0 ? `Add to order · ${formatUGX(currentPrice)}` : "Add to order"}
                 </button>
+                {extraCost === 0 && (
+                  <p style={{ fontSize: 12, color: "var(--fg-muted)", textAlign: "center", margin: 0 }}>
+                    No extras? Just tap above ↑
+                  </p>
+                )}
               </div>
             </article>
           </div>
