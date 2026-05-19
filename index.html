@@ -2613,7 +2613,7 @@ window.ProductImg = ProductImg;
 
 const SIGNUP_OTP_NAMES = { "0":"Alex K.","1":"Grace M.","2":"Brian O.","3":"Sarah M.","4":"David L.","5":"Grace N.","6":"Peter W.","7":"Mary A.","8":"James T.","9":"Faith R." };
 
-const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
+const LoyaltyModal = ({ open, onClose, onSubmit, onStartOrder, prefill }) => {
   const [step, setStep]         = useState("phone"); // "phone" | "otp" | "name"
   const [phone, setPhone]       = useState(prefill?.phone || "");
   const [otp, setOtp]           = useState("");
@@ -2656,8 +2656,8 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
 
   const finish = () => {
     if (!name.trim()) return;
+    onSubmit({ name: name.trim(), phone }); // register account immediately
     setStep("done");
-    setTimeout(() => onSubmit({ name: name.trim(), phone }), 2200);
   };
 
   if (!open) return null;
@@ -2764,16 +2764,38 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
             </>
           )}
 
-          {/* Step 4 — celebration */}
+          {/* Step 4 — celebration + order prompt */}
           {step === "done" && (
-            <div style={{ textAlign: "center", padding: "12px 0 8px" }}>
-              <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
-              <h3 style={{ fontFamily: "var(--display-family)", fontWeight: 500, fontSize: 26, color: "var(--ink-800)", marginBottom: 8 }}>
-                Welcome to the tribe, <em style={{ color: "var(--brand-live)", fontStyle: "italic" }}>{name}</em>!
-              </h3>
-              <p style={{ fontSize: 14, color: "var(--fg-muted)", lineHeight: 1.6 }}>
-                What would you like to order today?
-              </p>
+            <div>
+              <div style={{ textAlign: "center", marginBottom: 24 }}>
+                <div style={{ fontSize: 44, marginBottom: 10 }}>🎉</div>
+                <h3 style={{ fontFamily: "var(--display-family)", fontWeight: 500, fontSize: 24, color: "var(--ink-800)", marginBottom: 6 }}>
+                  Welcome to the tribe, <em style={{ color: "var(--brand-live)", fontStyle: "italic" }}>{name}</em>!
+                </h3>
+                <p style={{ fontSize: 14, color: "var(--fg-muted)" }}>What would you like to do next?</p>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <button type="button" onClick={() => { onStartOrder("pickup"); onClose(); }} style={{
+                  padding: "16px 12px", borderRadius: "var(--r-lg)",
+                  border: "1.5px solid var(--border)", background: "#fff",
+                  cursor: "pointer", textAlign: "center", transition: "all .15s",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                }}>
+                  <span style={{ fontSize: 26 }}>🏃</span>
+                  <span style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-800)" }}>Pickup</span>
+                  <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>Ready in 5–10 min</span>
+                </button>
+                <button type="button" onClick={() => { onStartOrder("delivery"); onClose(); }} style={{
+                  padding: "16px 12px", borderRadius: "var(--r-lg)",
+                  border: "1.5px solid var(--border)", background: "#fff",
+                  cursor: "pointer", textAlign: "center", transition: "all .15s",
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                }}>
+                  <span style={{ fontSize: 26 }}>🛵</span>
+                  <span style={{ fontWeight: 700, fontSize: 14, color: "var(--ink-800)" }}>Delivery</span>
+                  <span style={{ fontSize: 12, color: "var(--fg-muted)" }}>To your doorstep</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -5566,8 +5588,11 @@ function App() {
   const handleSignup = (form) => {
     const mock = window.LP_DATA.MOCK_ACCOUNT;
     setAccount({ ...mock, name: form.name, phone: form.phone });
+  };
+  const handleSignupOrder = (mode) => {
     setShowSignup(false);
-    showToast("Welcome to the Tribe ✦");
+    if (mode === "pickup") { go("outlet"); }
+    else { go("delivery-address"); }
   };
 
   // route render
@@ -5677,6 +5702,7 @@ function App() {
         open={showSignup}
         onClose={() => setShowSignup(false)}
         onSubmit={handleSignup}
+        onStartOrder={handleSignupOrder}
       />
 
       <TweaksPanel title="Tweaks · La Patisserie">
