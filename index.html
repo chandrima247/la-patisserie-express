@@ -1048,6 +1048,15 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: var(--sp-10);
 }
 @media (min-width: 700px) { .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+@media (max-width: 480px) {
+  .footer { padding: var(--sp-8) 0 var(--sp-6); margin-top: var(--sp-10); }
+  .footer-grid { gap: var(--sp-5); margin-bottom: var(--sp-6); }
+  .footer .brandwm { font-size: 22px; }
+  .footer .brand-tag { font-size: 13px; }
+  .footer ul { gap: var(--sp-1); }
+  .footer a, .footer li { font-size: 13px; }
+  .footer-bottom { padding-top: var(--sp-4); font-size: 12px; }
+}
 .footer h5 {
   font-family: var(--font-sans);
   font-size: 11px;
@@ -1452,7 +1461,7 @@ a { color: inherit; text-decoration: none; }
 .product-art {
   position: relative;
   aspect-ratio: 1;
-  background: transparent;
+  background: var(--cream-100);
   overflow: hidden;
   display: grid; place-items: center;
 }
@@ -2123,7 +2132,7 @@ const PRODUCTS = [
   // Hot
   { id: "p-african-coffee", name: "African coffee",  category: "hot", meta: "Single-origin · medium roast", price: 8500, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, tag: "Signature", desc: "A medium-roasted single-origin from the slopes of Mt. Elgon. Notes of cocoa, brown sugar, and a long, syrupy finish.", drink: true },
   { id: "p-americano",      name: "Americano",       category: "hot", meta: "Double shot · 8oz", price: 7000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "Two shots of espresso lengthened with hot water. Clean, dark, unpretentious.", drink: true },
-  { id: "p-african-tea",    name: "African tea",     category: "hot", meta: "Loose leaf · spiced", price: 6000, img: `${ASSET}/products/african-tea.png`, desc: "Black tea simmered with whole spices and a touch of milk. Traditional, comforting.", drink: true },
+  { id: "p-african-tea",    name: "African tea",     category: "hot", meta: "Loose leaf · spiced", price: 6000, img: `${ASSET}/products/americano.png`, desc: "Black tea simmered with whole spices and a touch of milk. Traditional, comforting.", drink: true },
   { id: "p-cappuccino",     name: "Cappuccino",      category: "hot", meta: "Espresso · steamed milk · foam", price: 12000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "A classic espresso topped with velvety steamed milk and a dome of foam.", drink: true },
   { id: "p-latte",          name: "Café latte",      category: "hot", meta: "Espresso · steamed milk", price: 13000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "Smooth, milky, comforting. Our house blend pulled long and steamed silky.", drink: true },
   { id: "p-mocha",          name: "Mocha",           category: "hot", meta: "Espresso · cocoa · milk", price: 14000, img: `${ASSET}/products/Hot black coffee in a glass mug.png`, desc: "Espresso with house cocoa, steamed milk, and a swirl of cream.", drink: true },
@@ -2465,6 +2474,8 @@ const Icon = ({ name, size = 20, ...rest }) => {
       return <svg {...props}><path d="m9 18 6-6-6-6"/></svg>;
     case "chevron-down":
       return <svg {...props}><path d="m6 9 6 6 6-6"/></svg>;
+    case "whatsapp":
+      return <svg {...props} viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884"/></svg>;
     default:
       return null;
   }
@@ -2645,7 +2656,8 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
 
   const finish = () => {
     if (!name.trim()) return;
-    onSubmit({ name: name.trim(), phone });
+    setStep("done");
+    setTimeout(() => onSubmit({ name: name.trim(), phone }), 2200);
   };
 
   if (!open) return null;
@@ -2682,10 +2694,13 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
           {step === "phone" && (
             <>
               <p style={{ fontSize: 14, color: "var(--fg-muted)", marginBottom: 20 }}>
-                Enter your number and we'll send a quick verification code.
+                Enter your WhatsApp number — your verification code will be sent there.
               </p>
               <div className="phone-wrap" style={{ marginTop: 6 }}>
-                <span className="phone-prefix">UG +256</span>
+                <span className="phone-prefix" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Icon name="whatsapp" size={15} style={{ color: "#25D366", flexShrink: 0 }}/>
+                  UG +256
+                </span>
                 <input autoFocus className="input" inputMode="numeric" maxLength={9}
                   placeholder="7XX XXX XXX" value={phone}
                   onChange={e => setPhone(e.target.value.replace(/\D/g,"").slice(0,9))}
@@ -2701,14 +2716,12 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
           {/* Step 2 — OTP */}
           {step === "otp" && (
             <>
-              <p style={{ fontSize: 14, color: "var(--fg-muted)", marginBottom: 4 }}>
-                Code sent to <strong style={{ color: "var(--ink-800)" }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)}</strong>
-              </p>
-              <button onClick={() => setStep("phone")} style={{
-                background: "none", border: "none", fontSize: 13, fontWeight: 600,
-                color: "var(--brand-live)", cursor: "pointer", padding: 0, marginBottom: 20,
-              }}>Change number</button>
-
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
+                <Icon name="whatsapp" size={15} style={{ color: "#25D366", flexShrink: 0 }}/>
+                <p style={{ fontSize: 14, color: "var(--fg-muted)", margin: 0 }}>
+                  Code sent to <strong style={{ color: "var(--ink-800)" }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)}</strong> on WhatsApp
+                </p>
+              </div>
               <input autoFocus className="input" inputMode="numeric" maxLength={4}
                 placeholder="4-digit code"
                 value={otp} onChange={e => {
@@ -2717,7 +2730,7 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
                   setOtp(val);
                   if (val.length === 4) verifyOtp(val);
                 }}
-                style={{ letterSpacing: "0.25em", fontWeight: 700, fontSize: 20, textAlign: "center" }}/>
+                style={{ letterSpacing: "0.25em", fontWeight: 700, fontSize: 20, textAlign: "center", marginTop: 16 }}/>
               {otpErr && <p style={{ fontSize: 12, color: "var(--error-500)", marginTop: 6 }}>Incorrect code — try again.</p>}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
                 <button onClick={resendSignupOtp} disabled={signupResendCooldown > 0 || sending} style={{
@@ -2744,15 +2757,24 @@ const LoyaltyModal = ({ open, onClose, onSubmit, prefill }) => {
                 value={name} onChange={e => setName(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && finish()}
                 style={{ marginTop: 6 }}/>
-
               <button className="btn full lg" style={{ marginTop: 20 }}
                 onClick={finish} disabled={!name.trim()}>
                 Create my account
               </button>
-              <p style={{ fontSize: 12, color: "var(--fg-muted)", textAlign: "center", marginTop: 12, lineHeight: 1.5 }}>
-                By joining, you agree to receive order updates by SMS.
-              </p>
             </>
+          )}
+
+          {/* Step 4 — celebration */}
+          {step === "done" && (
+            <div style={{ textAlign: "center", padding: "12px 0 8px" }}>
+              <div style={{ fontSize: 52, marginBottom: 12 }}>🎉</div>
+              <h3 style={{ fontFamily: "var(--display-family)", fontWeight: 500, fontSize: 26, color: "var(--ink-800)", marginBottom: 8 }}>
+                Welcome to the tribe, <em style={{ color: "var(--brand-live)", fontStyle: "italic" }}>{name}</em>!
+              </h3>
+              <p style={{ fontSize: 14, color: "var(--fg-muted)", lineHeight: 1.6 }}>
+                What would you like to order today?
+              </p>
+            </div>
           )}
         </div>
       </article>
@@ -3031,7 +3053,7 @@ const LoyaltyContent = ({ onSignup, account, onDash }) => (
         </div>
         <div className="loy-redeem">
           <strong>5,000 pts</strong>
-          <span>= UGX 5,000 off your bill</span>
+          <span>On accumulating → UGX 5,000 off your bill</span>
         </div>
         <div className="loy-actions">
           {account
@@ -3129,11 +3151,11 @@ const ModeChoice = ({ onBack, onPick }) => (
           <div className="mode-card-header">
             <Icon name="scooter" size={28} style={{ color: "var(--brand-live)", flexShrink: 0 }} />
             <div>
-              <div className="eyebrow">Door-to-door · 30–45 min</div>
+              <div className="eyebrow">To your doorstep · under 30 min</div>
               <h3>Delivery</h3>
             </div>
           </div>
-          <p>Hot, fresh, and brought to your door by a Patisserie scooter. We match you to the closest outlet.</p>
+          <p>Hot, fresh, and to your doorstep in less than 30 mins. We match you to the closest outlet.</p>
           <div className="meta-row">
             <span>UGX 5,000 fee</span>
             <span>Kampala area</span>
@@ -4297,6 +4319,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                   {/* Required: apt/floor */}
                   <div style={{ display: "flex", alignItems: "center", padding: "0 14px", background: "#fff" }}>
                     <input
+                      className="apt-input"
                       style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 14, color: "var(--ink-800)", padding: "14px 0", fontFamily: "inherit" }}
                       placeholder="Apt / Floor / Block  e.g. Apt 4B, 3rd floor"
                       value={apt}
@@ -4429,66 +4452,92 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                 <div className="totals-row grand"><span>Total</span><span className="tabular">{fmt(total)}</span></div>
               </div>
 
-              {/* ── Phone / OTP ── */}
-              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--border)" }}>
-
-                {/* Step: phone entry */}
-                {otpStep === "phone" && (
-                  <div className="phone-wrap">
-                    <span className="phone-prefix">UG +256</span>
-                    <input className="input" inputMode="numeric" maxLength={9} value={phone}
-                      onChange={e => setPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
-                      placeholder="7XX XXX XXX" autoFocus/>
+              {/* ── Phone / OTP (skip if logged in) ── */}
+              {account ? (
+                <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--red-50)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                    <Icon name="check" size={14} style={{ color: "var(--brand-live)" }}/>
                   </div>
-                )}
-
-                {/* Step: OTP sent — waiting for code */}
-                {otpStep === "otp" && (
                   <div>
-                    <p style={{ fontSize: 13, color: "var(--fg-muted)", marginBottom: 10 }}>
-                      Code sent to <strong style={{ color: "var(--ink-800)" }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)}</strong>. Enter it to verify your number.
-                    </p>
-                    <input className="input" inputMode="numeric" maxLength={4} value={otp}
-                      onChange={e => handleOtpChange(e.target.value)}
-                      placeholder="4-digit code"
-                      autoFocus
-                      style={{ width: "100%", letterSpacing: "0.3em", fontWeight: 700, fontSize: 22, textAlign: "center" }}/>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
-                      <button onClick={resendOtp} disabled={resendCooldown > 0} style={{
-                        background: "none", border: "none", cursor: resendCooldown > 0 ? "default" : "pointer",
-                        fontSize: 12, fontWeight: 600, padding: 0,
-                        color: resendCooldown > 0 ? "var(--fg-muted)" : "var(--brand-live)",
-                      }}>
-                        {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
-                      </button>
-                      <button onClick={() => { setOtpStep("phone"); setOtp(""); }} style={{ background: "none", border: "none", color: "var(--ink-400)", cursor: "pointer", fontSize: 12, fontWeight: 500, padding: 0 }}>Change number</button>
-                    </div>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)" }}>Placing as {account.name}</p>
+                    <p style={{ fontSize: 12, color: "var(--fg-muted)" }}>{account.phone || "Loyalty member"}</p>
                   </div>
-                )}
+                </div>
+              ) : (
+                <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--border)" }}>
 
-                {/* Step: verified */}
-                {otpStep === "verified" && (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-                    <div>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-800)" }}>{verifiedName}</p>
-                      <p style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 2 }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)} · Verified</p>
+                  {/* Step: phone entry */}
+                  {otpStep === "phone" && (
+                    <div className="phone-wrap">
+                      <span className="phone-prefix" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Icon name="whatsapp" size={14} style={{ color: "#25D366", flexShrink: 0 }}/>
+                        UG +256
+                      </span>
+                      <input className="input" inputMode="numeric" maxLength={9} value={phone}
+                        onChange={e => setPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                        placeholder="7XX XXX XXX"/>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+
+                  {/* Step: OTP sent */}
+                  {otpStep === "otp" && (
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                        <Icon name="whatsapp" size={13} style={{ color: "#25D366", flexShrink: 0 }}/>
+                        <p style={{ fontSize: 13, color: "var(--fg-muted)", margin: 0 }}>
+                          Code sent to <strong style={{ color: "var(--ink-800)" }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)}</strong> on WhatsApp
+                        </p>
+                      </div>
+                      <input className="input" inputMode="numeric" maxLength={4} value={otp}
+                        onChange={e => handleOtpChange(e.target.value)}
+                        placeholder="4-digit code"
+                        autoFocus
+                        style={{ width: "100%", letterSpacing: "0.3em", fontWeight: 700, fontSize: 22, textAlign: "center" }}/>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 }}>
+                        <button onClick={resendOtp} disabled={resendCooldown > 0} style={{
+                          background: "none", border: "none", cursor: resendCooldown > 0 ? "default" : "pointer",
+                          fontSize: 12, fontWeight: 600, padding: 0,
+                          color: resendCooldown > 0 ? "var(--fg-muted)" : "var(--brand-live)",
+                        }}>
+                          {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
+                        </button>
+                        <button onClick={() => { setOtpStep("phone"); setOtp(""); }} style={{ background: "none", border: "none", color: "var(--ink-400)", cursor: "pointer", fontSize: 12, fontWeight: 500, padding: 0 }}>Change number</button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step: verified */}
+                  {otpStep === "verified" && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <Icon name="check" size={14} style={{ color: "#22a05b" }}/>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-800)" }}>{verifiedName}</p>
+                        <p style={{ fontSize: 12, color: "var(--fg-muted)" }}>+256 {phone.slice(0,3)} {phone.slice(3,6)} {phone.slice(6)} · Verified</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ── Place order ── */}
-              <button className="btn full lg" onClick={place}
-                disabled={aptMissing || otpStep === "otp" || (otpStep === "phone" && phone.length < 9) || otpSending}
+              <button className="btn full lg" onClick={() => {
+                if (aptMissing) {
+                  document.querySelector(".apt-input")?.focus();
+                  document.querySelector(".apt-input")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  return;
+                }
+                if (account) { doPlace(account.name); return; }
+                place();
+              }}
+                disabled={otpStep === "otp" || (!account && otpStep === "phone" && phone.length < 9) || otpSending}
                 style={{
                   marginTop: 16,
-                  opacity: (aptMissing || otpStep === "otp" || (otpStep === "phone" && phone.length < 9)) ? 0.45 : 1,
-                  cursor: (aptMissing || otpStep === "otp" || (otpStep === "phone" && phone.length < 9)) ? "default" : "pointer",
+                  opacity: (otpStep === "otp" || (!account && otpStep === "phone" && phone.length < 9)) ? 0.45 : 1,
+                  cursor: (otpStep === "otp" || (!account && otpStep === "phone" && phone.length < 9)) ? "default" : "pointer",
                 }}>
                 {otpSending ? "Sending verification…"
                   : otpStep === "otp" ? "Waiting for code…"
                   : otpStep === "verified" ? "Placing order…"
-                  : aptMissing ? "Add apt / floor to continue"
                   : `Place order · ${fmt(total)}`}
               </button>
 
@@ -5612,12 +5661,10 @@ function App() {
           if (route.name === "landing") {
             const el = document.getElementById("loyalty-section");
             if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else if (account) {
+            go("loyalty-dash");
           } else {
-            go("landing");
-            setTimeout(() => {
-              const el = document.getElementById("loyalty-section");
-              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 350);
+            setShowSignup(true);
           }
         }}
         account={account}
