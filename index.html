@@ -1550,6 +1550,9 @@ a { color: inherit; text-decoration: none; }
 }
 @keyframes viewCartIn { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes celebrate-pop { 0% { transform: scale(0.4) rotate(-10deg); opacity: 0; } 60% { transform: scale(1.18) rotate(6deg); opacity: 1; } 80% { transform: scale(0.95) rotate(-2deg); } 100% { transform: scale(1) rotate(0deg); } }
+@keyframes celebrate-fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes confetti-fall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(60px) rotate(360deg); opacity: 0; } }
 @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1.6); opacity: 0; } }
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
 .view-cart .vc-meta {
@@ -2670,22 +2673,24 @@ const LoyaltyModal = ({ open, onClose, onSubmit, onStartOrder, prefill }) => {
         onClick={e => e.stopPropagation()}
         role="dialog" aria-modal="true"
       >
-        {/* Header */}
-        <div style={{
-          padding: "28px 28px 20px",
-          borderBottom: "1px solid var(--border)",
-          display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16,
-        }}>
-          <div>
-            <div className="eyebrow">The Patisserie Tribe</div>
-            <h2 className="serif" style={{ fontSize: "clamp(24px,4vw,32px)", lineHeight: 1.15, marginTop: 6, color: "var(--ink-800)", fontWeight: 500 }}>
-              Join in <em style={{ fontStyle: "italic", color: "var(--brand-live)" }}>30 seconds</em>.
-            </h2>
+        {/* Header — hidden on celebration step */}
+        {step !== "done" && (
+          <div style={{
+            padding: "28px 28px 20px",
+            borderBottom: "1px solid var(--border)",
+            display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16,
+          }}>
+            <div>
+              <div className="eyebrow">The Patisserie Tribe</div>
+              <h2 className="serif" style={{ fontSize: "clamp(24px,4vw,32px)", lineHeight: 1.15, marginTop: 6, color: "var(--ink-800)", fontWeight: 500 }}>
+                Join in <em style={{ fontStyle: "italic", color: "var(--brand-live)" }}>30 seconds</em>.
+              </h2>
+            </div>
+            <button className="modal-close" onClick={onClose} style={{ position: "static", marginTop: 2 }} aria-label="Close">
+              <Icon name="close" size={18}/>
+            </button>
           </div>
-          <button className="modal-close" onClick={onClose} style={{ position: "static", marginTop: 2 }} aria-label="Close">
-            <Icon name="close" size={18}/>
-          </button>
-        </div>
+        )}
 
         {/* Body — steps */}
         <div style={{ padding: "24px 28px 28px" }}>
@@ -2767,12 +2772,27 @@ const LoyaltyModal = ({ open, onClose, onSubmit, onStartOrder, prefill }) => {
           {/* Step 4 — celebration + order prompt */}
           {step === "done" && (
             <div>
-              <div style={{ textAlign: "center", marginBottom: 24 }}>
-                <div style={{ fontSize: 44, marginBottom: 10 }}>🎉</div>
-                <h3 style={{ fontFamily: "var(--display-family)", fontWeight: 500, fontSize: 24, color: "var(--ink-800)", marginBottom: 6 }}>
-                  Welcome to the tribe, <em style={{ color: "var(--brand-live)", fontStyle: "italic" }}>{name}</em>!
+              <div style={{ textAlign: "center", marginBottom: 24, padding: "8px 0 4px", position: "relative", overflow: "hidden" }}>
+                {/* Confetti dots */}
+                {["#C8102E","#FFD700","#25D366","#4A90E2","#F4A460"].map((c, i) => (
+                  <span key={i} style={{
+                    position: "absolute", width: 8, height: 8, borderRadius: i%2===0 ? "50%" : "2px",
+                    background: c, top: 0,
+                    left: `${15 + i * 17}%`,
+                    animation: `confetti-fall ${0.9 + i * 0.15}s ease-in ${i * 0.08}s both`,
+                  }}/>
+                ))}
+                <div style={{ fontSize: 50, animation: "celebrate-pop 0.55s cubic-bezier(.34,1.56,.64,1) both", display: "inline-block", marginBottom: 12 }}>🎉</div>
+                <h3 style={{
+                  fontFamily: "var(--display-family)", fontWeight: 500, fontSize: 26, color: "var(--ink-800)", marginBottom: 6,
+                  animation: "celebrate-fade-up 0.4s ease 0.35s both",
+                }}>
+                  Welcome to the tribe,{" "}
+                  <em style={{ color: "var(--brand-live)", fontStyle: "italic" }}>{name}</em>!
                 </h3>
-                <p style={{ fontSize: 14, color: "var(--fg-muted)" }}>What would you like to do next?</p>
+                <p style={{ fontSize: 14, color: "var(--fg-muted)", animation: "celebrate-fade-up 0.4s ease 0.5s both" }}>
+                  What would you like to do next?
+                </p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <button type="button" onClick={() => { onStartOrder("pickup"); onClose(); }} style={{
