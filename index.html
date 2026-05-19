@@ -4001,6 +4001,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
   const [deliveryAddr, setDeliveryAddr] = useState(context.address || "");
   const [savedAddrs, setSavedAddrs] = useState([]);
   const [showSaved, setShowSaved] = useState(false);
+  const [pickupTime, setPickupTime] = useState("asap");
   const [editingAddr, setEditingAddr] = useState(false);
   const [addrQ, setAddrQ] = useState("");
   const [addrPreds, setAddrPreds] = useState([]);
@@ -4067,7 +4068,7 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
       total, subtotal, deliveryFee, discount, earn, phone,
       instructions: deliveryDetails || context.instructions,
       orderNote, name,
-      deliveryAddr,
+      deliveryAddr, pickupTime,
     });
   };
   const aptMissing = context.mode === "delivery" && !apt.trim();
@@ -4327,6 +4328,64 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
               </div>
             )}
 
+            {/* ── Pickup time section (left col, pickup only) ── */}
+            {context.mode === "pickup" && (() => {
+              const slots = [
+                { id: "asap", label: "ASAP", sub: "est. 5–10 min" },
+                { id: "15",   label: "15 min" },
+                { id: "30",   label: "30 min" },
+                { id: "45",   label: "45 min" },
+                { id: "60",   label: "1 hour" },
+              ];
+              return (
+                <div className="checkout-section" style={{ marginTop: 16 }}>
+                  <h3>Pickup details</h3>
+
+                  {/* Outlet chip */}
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "11px 14px", borderRadius: "var(--r-md)",
+                    background: "var(--cream-50)", border: "1px solid var(--border)",
+                    marginBottom: 16,
+                  }}>
+                    <Icon name="pin" size={15} style={{ color: "var(--brand-live)", flexShrink: 0 }}/>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-800)" }}>{context.outlet?.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--fg-muted)", marginTop: 2 }}>{context.outlet?.area} · {context.outlet?.hours}</div>
+                    </div>
+                  </div>
+
+                  {/* Time slots */}
+                  <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase", color: "var(--fg-muted)", marginBottom: 10 }}>When do you want to pick up?</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {slots.map(s => {
+                      const active = pickupTime === s.id;
+                      return (
+                        <button key={s.id} type="button" onClick={() => setPickupTime(s.id)} style={{
+                          display: "flex", alignItems: "center", gap: 10,
+                          padding: "12px 14px", borderRadius: "var(--r-md)",
+                          border: active ? "2px solid var(--brand-live)" : "1.5px solid var(--border)",
+                          background: active ? "var(--red-50, #fff5f5)" : "#fff",
+                          cursor: "pointer", textAlign: "left", transition: "all .15s",
+                        }}>
+                          {/* Radio dot */}
+                          <div style={{
+                            width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                            border: active ? "5px solid var(--brand-live)" : "2px solid var(--ink-300)",
+                            background: "#fff", transition: "all .15s",
+                          }}/>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "var(--brand-live)" : "var(--ink-800)" }}>{s.label}</div>
+                            {s.sub && <div style={{ fontSize: 11, color: "var(--fg-muted)", marginTop: 1 }}>{s.sub}</div>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
           </div>
 
           <div>
@@ -4351,6 +4410,11 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                       ? `${context.outlet?.name} · ETA 30–45 min`
                       : `${context.outlet?.area} · ${context.outlet?.hours}`}
                   </p>
+                  {context.mode === "pickup" && (
+                    <p style={{ fontSize: 12, fontWeight: 600, color: "var(--brand-live)", marginTop: 4 }}>
+                      {{asap:"ASAP (est. 5–10 min)", "15":"15 min","30":"30 min","45":"45 min","60":"1 hour"}[pickupTime]}
+                    </p>
+                  )}
                 </div>
 
               </div>
