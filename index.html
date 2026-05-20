@@ -4356,13 +4356,18 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                 )}
 
                 {/* Detail fields */}
-                <div style={{ borderRadius: "var(--r-md)", border: "1px solid var(--border)", overflow: "hidden" }}>
+                <div style={{
+                  borderRadius: "var(--r-md)", overflow: "hidden",
+                  border: aptMissing ? "1.5px solid var(--brand-live)" : "1.5px solid var(--border)",
+                  transition: "border-color .2s",
+                  boxShadow: aptMissing ? "0 0 0 3px rgba(158,11,15,0.08)" : "none",
+                }}>
                   {/* Required: apt/floor */}
                   <div style={{ display: "flex", alignItems: "center", padding: "0 14px", background: "#fff" }}>
                     <input
                       className="apt-input"
                       style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 14, color: "var(--ink-800)", padding: "14px 0", fontFamily: "inherit" }}
-                      placeholder="Apt / Floor / Block  e.g. Apt 4B, 3rd floor"
+                      placeholder="Apt / Floor / Block — e.g. Apt 4B, 3rd floor"
                       value={apt}
                       onChange={e => setApt(e.target.value)}
                     />
@@ -4374,10 +4379,10 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                     )}
                   </div>
                   {/* Optional: landmark / note */}
-                  <div style={{ borderTop: "1px solid var(--border)", padding: "0 14px", background: "var(--cream-50)" }}>
+                  <div style={{ borderTop: "1px solid var(--border)", padding: "0 14px", background: "#fff" }}>
                     <input
                       style={{ width: "100%", border: "none", outline: "none", background: "transparent", fontSize: 13, color: "var(--ink-700)", padding: "12px 0", fontFamily: "inherit" }}
-                      placeholder="Landmark, gate code, or note for rider  (optional)"
+                      placeholder="Landmark or gate code  (optional)"
                       value={moreDetails}
                       onChange={e => setMoreDetails(e.target.value)}
                     />
@@ -4385,8 +4390,8 @@ const Checkout = ({ context, cart, account, onBack, onChangeAddress, onUpdateQty
                 </div>
 
                 {aptMissing && (
-                  <p style={{ fontSize: 12, color: "var(--brand-live)", marginTop: 8, fontWeight: 500 }}>
-                    Please add your apt / floor so the rider can find you.
+                  <p style={{ fontSize: 12, color: "var(--brand-live)", marginTop: 6, fontWeight: 500, display: "flex", alignItems: "center", gap: 5 }}>
+                    <span>↑</span> Add your apt / floor so the rider can find you.
                   </p>
                 )}
               </div>
