@@ -2067,7 +2067,13 @@ a { color: inherit; text-decoration: none; }
   /* Product card: horizontal layout on mobile for better density */
   .product-grid { grid-template-columns: 1fr; gap: var(--sp-3); }
   .product-card { flex-direction: row; align-items: center; }
-  .product-art { width: 90px; min-width: 90px; aspect-ratio: 1; flex-shrink: 0; }
+  .product-art {
+    width: 84px; min-width: 84px; aspect-ratio: 1; flex-shrink: 0;
+    margin: 8px 0 8px 8px;
+    border-radius: var(--r-md);
+  }
+  /* Tag is now a sibling of product-art, sits over the top-left corner */
+  .product-tag { top: 8px; left: 8px; }
   .product-body { padding: var(--sp-3) var(--sp-4); }
   .product-body h3 { font-size: 16px; }
 
@@ -3830,15 +3836,15 @@ const Menu = ({ context, onBack, onChangeContext, cart, onAddCart, onUpdateQty, 
                 {items.map(p => {
                   const qty = productQty(p.id);
                   return (
-                    <article key={p.id} className="product-card">
+                    <article key={p.id} className="product-card" style={{ position: "relative" }}>
                       <div className={`product-art cat-${p.category}`}>
                         <ProductImg src={p.img} alt={p.name} name={p.name} category={p.category} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                        {p.tag && (
-                          <div className="product-tag">
-                            <span className={"badge " + (p.tag === "New" ? "brand" : "gold")}>{p.tag}</span>
-                          </div>
-                        )}
                       </div>
+                      {p.tag && (
+                        <div className="product-tag">
+                          <span className={"badge " + (p.tag === "New" ? "brand" : "gold")}>{p.tag}</span>
+                        </div>
+                      )}
                       <div className="product-body">
                         <h3>{p.name}</h3>
                         <p className="meta">{p.meta}</p>
